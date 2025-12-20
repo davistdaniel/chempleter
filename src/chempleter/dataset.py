@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 class ChempleterDataset(Dataset):
     def __init__(self, selfies_file,stoi_file):
-        
+        super().__init__()
         selfies_dataframe = pd.read_csv(selfies_file)
         self.data = selfies_dataframe["selfies"].to_list()
         with open(stoi_file) as f:
