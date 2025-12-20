@@ -1,15 +1,15 @@
-import pandas as pd
 import json
 import torch
 import selfies as sf
+import pandas as pd
 from torch.utils.data import Dataset
 
 class ChempleterDataset(Dataset):
-    def __init__(self, selfies_file,stoic_file):
+    def __init__(self, selfies_file,stoi_file):
         
         selfies_dataframe = pd.read_csv(selfies_file)
         self.data = selfies_dataframe["selfies"].to_list()
-        with open(stoic_file) as f:
+        with open(stoi_file) as f:
             self.selfies_to_integer = json.load(f)
         
     def __len__(self):
