@@ -1,9 +1,12 @@
 
 import torch
+import torch.optim as optim
+from torch import nn
+from pathlib import Path
 
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
 
-def train_one_epoch(model,dataloader,optimizer,criterion,device):
+def train_one_epoch(model,dataloader,optimizer,criterion, scheduler,device=device):
     model.train()
     total_loss = 0
 
@@ -29,16 +32,32 @@ def train_one_epoch(model,dataloader,optimizer,criterion,device):
 
         avg_loss = total_loss / len(dataloader)
 
+    if scheduler:
+        scheduler.step(avg_loss)
+
 
     return avg_loss
 
-def start_training(n_epochs,model,dataloader, optimizer, criterion, device=device):
+def start_training(n_epochs,model,dataloader, optimizer=None, criterion=None, scheduler=None,device=device,model_save_path=None):
     model.to(device)
+
+    if not optimizer:
+        optimizer = optim.Adam(model.parameters(),lr=0.001)
+    if not criterion:
+        criterion = nn.CrossEntropyLoss(ignore_index=0)
+    if not scheduler:
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer,mode="min",patience=3,factor=0.1)
+        current_lr = scheduler.get_last_lr()
+    if not model_save_path:
+        model_save_path=Path().cwd()
 
     best_loss = float("inf")
     for epoch in range(n_epochs):
-        avg_loss = train_one_epoch(model, dataloader, optimizer, criterion, device)
+        avg_loss = train_one_epoch(model, dataloader, optimizer, criterion, scheduler,device)
         print(f"Epoch {epoch}: Loss {avg_loss:.4f}")
+        if current_lr!=scheduler.get_last_lr():
+            current_lr=scheduler.get_last_lr()
+            print(f"Changed learning rate to : {current_lr}")
 
         if avg_loss < best_loss:
             best_loss = avg_loss
@@ -46,5 +65,5 @@ def start_training(n_epochs,model,dataloader, optimizer, criterion, device=devic
             "epoch": epoch,
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
-        }, "checkpoint.pt")
+        }, model_save_path / "checkpoint.pt")
             print(f"Saved model at Epoch {epoch}")
