@@ -65,5 +65,7 @@ def start_training(n_epochs,model,dataloader, optimizer=None, criterion=None, sc
             "epoch": epoch,
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
+            "loss": avg_loss,
+            "current_lr": current_lr
         }, model_save_path / "checkpoint.pt")
             print(f"Saved model at Epoch {epoch}")
