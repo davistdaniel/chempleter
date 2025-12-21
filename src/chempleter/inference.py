@@ -6,7 +6,7 @@ import random
 
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
 
-def handle_prompt(smiles,selfies,stoi):
+def handle_prompt(smiles,selfies,stoi,alter_prompt):
     if selfies is not None:
         print(f"Input SELFIES: {smiles}")
         for i in selfies:
@@ -17,16 +17,23 @@ def handle_prompt(smiles,selfies,stoi):
         if smiles.strip().replace(" ","")!="":
             print(f"Input SMILES: {smiles}")
 
-            for i in range(len(smiles), 0, -1):
-                try:
-                    test_smiles = smiles[:i]
-                    input_selfies = sf.encoder(test_smiles)
-                    tail = smiles[i:]
-                    if len(tail)>0:
-                        print(f"Ingored string: {tail}")
-                    break
-                except sf.EncoderError:
-                    continue
+            try:
+                input_selfies = sf.encoder(smiles)
+                test_smiles = smiles
+            except sf.EncoderError as e:
+                if alter_prompt:
+                    for i in range(len(smiles)-1, 0, -1):
+                        try:
+                            test_smiles = smiles[:i]
+                            input_selfies = sf.encoder(test_smiles)
+                            tail = smiles[i:]
+                            if len(tail)>0:
+                                print(f"Ingored string: {tail}")
+                            break
+                        except sf.EncoderError:
+                            continue
+                else:
+                    raise sf.EncoderError(e)
 
             prompt=["[START]"]+list(sf.split_selfies(sf.encoder(test_smiles,strict=False)))
         else:
@@ -93,18 +100,20 @@ def handle_len(prompt,min_len,max_len):
     prompt_len = len(prompt)
     
     if min_len is None:
-        min_len = prompt_len + 5  # At least generate one token
+        min_len = prompt_len + 2
     
     if min_len < prompt_len:
         print(f"Warning: min_len ({min_len}) < prompt length ({prompt_len}). "
-              f"Setting min_len to {prompt_len + 5}")
-        min_len = prompt_len + 5
+              f"Setting min_len to {prompt_len + 2}")
+        min_len = prompt_len + 2
     
+    max_len += prompt_len
+
     if max_len < min_len:
-        raise ValueError(f"max_len ({max_len}) must be >= min_len ({min_len})")
+        max_len+5
     
-    if max_len < prompt_len:
-        raise ValueError(f"max_len ({max_len}) must be >= prompt length ({prompt_len})")
+    # if max_len < prompt_len:
+    #     raise ValueError(f"max_len ({max_len}) must be >= prompt length ({prompt_len})")
     
     return min_len,max_len
     
@@ -119,11 +128,12 @@ def extend(model,stoi_file,itos_file,selfies=None,smiles="",min_len=None,max_len
     with open(itos_file) as f:
         itos = json.load(f)
 
-    prompt = handle_prompt(smiles,selfies,stoi)
+    prompt = handle_prompt(smiles,selfies,stoi,alter_prompt)
     
     print(f"Input prompt: {prompt}")
 
     min_len,max_len = handle_len(prompt,min_len,max_len)
+    print(min_len,max_len)
     
     generated_smiles = prompt
     
