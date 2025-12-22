@@ -1,4 +1,5 @@
 # chempleter
+from pathlib import Path
 
 
 import logging
@@ -9,8 +10,6 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s",
 )
 
-
-from pathlib import Path
 
 def start_workflow(experiment_name,working_dir=None):
 
