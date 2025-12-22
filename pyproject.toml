@@ -5,7 +5,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "nicegui>=3.4.1",
     "pandas>=2.3.3",
     "pathlib>=1.0.1",
     "rdkit>=2025.9.3",
@@ -16,6 +15,9 @@ dependencies = [
 [project.optional-dependencies]
 gpu128 = [
   "torch>=2.9.1",
+]
+gui = [
+    "nicegui>=3.4.1",
 ]
 
 [tool.uv.sources]
@@ -43,4 +45,5 @@ dev = [
     "jupyter>=1.1.1",
     "pytest>=9.0.2",
     "ruff>=0.14.10",
+    "tqdm>=4.67.1",
 ]
