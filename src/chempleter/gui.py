@@ -5,13 +5,18 @@ import base64
 import json
 import torch
 from nicegui import ui
-from chempleter.inference import handle_prompt,extend,handle_len
+from chempleter.inference import handle_prompt,extend
 from chempleter.model import ChempleterModel
-from chempleter.inference import extend
 from pathlib import Path
 from rdkit.Chem import Draw
 from rdkit.Chem import MolFromSmiles
 from importlib import resources
+
+device = (
+    torch.accelerator.current_accelerator().type
+    if torch.accelerator.is_available()
+    else "cpu"
+)
 
 stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
 itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
@@ -22,9 +27,8 @@ with open(stoi_file) as f:
 with open(itos_file) as f:
     itos = json.load(f)
 
-
 model = ChempleterModel(vocab_size=len(stoi))
-checkpoint = torch.load(checkpoint_file,weights_only=True)
+checkpoint = torch.load(checkpoint_file,map_location=device,weights_only=True)
 model.load_state_dict(checkpoint['model_state_dict'])
 
 
