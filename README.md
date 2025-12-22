@@ -28,27 +28,27 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 2. Install using uv
 
-    ``uv sync``
-
-    In case of using GPU as accelerator and CUDA 12.8 :
+    In case of using GPU as accelerator and CUDA 12.8:
 
     ``uv sync --extra gpu128``
 
-    If GUI is needed
+    If CPU is used:
 
-    ``uv sync --extra gui``
+    ``uv sync --extra cpu``
 
-    Both GPU and GUI needed
-
-    ``uv sync --extra gui --extra gpu128``
-
+    For GUI, add it as an extra:
+    
+    ```bash
+    # use --extra cpu instead for --extra gpu128 for CPU inference
+    uv sync --extra gui --extra gpu128
+    ```
 
 ## Usage
 * To start the GUI:
 
     ``uv run src/chempleter/gui.py``
 
-* Use as a library in a CLI
+* Use as a python library:
 
     ```python
     from chempleter import extend
