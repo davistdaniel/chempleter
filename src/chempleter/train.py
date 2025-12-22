@@ -20,9 +20,9 @@ def train_one_epoch(model,dataloader,optimizer,criterion, scheduler,device=devic
         targets_flat = targets.reshape(-1)
         loss = criterion(logits_flat, targets_flat)
 
-        # if batch_idx % 100 == 0:
-        #     print(f"Batch {batch_idx + 1}/{len(dataloader)} "
-        #       f"- Loss: {loss.item():.4f}")
+        if batch_idx % 500 == 0:
+            print(f"Batch {batch_idx + 1}/{len(dataloader)} "
+              f"- Loss: {loss.item():.4f}")
         
         loss.backward()
         optimizer.step()
@@ -50,6 +50,8 @@ def start_training(n_epochs,model,dataloader, optimizer=None, criterion=None, sc
         current_lr = scheduler.get_last_lr()
     if not model_save_path:
         model_save_path=Path().cwd()
+    else:
+        model_save_path = Path(model_save_path)
 
     best_loss = float("inf")
     for epoch in range(n_epochs):
