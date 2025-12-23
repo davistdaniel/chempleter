@@ -154,9 +154,9 @@ def output_molecule(generated_ids, itos):
             if itos[idx] not in ["[END]", "[START]", "[PAD]"]
         ]
     )
-    #print(f"Generated SELFIE: {generated_selfies}")
+    logging.info(f"Generated SELFIE: {generated_selfies}")
     generated_smiles = sf.decoder(generated_selfies)
-    #print(f"Generated SMILES: {generated_smiles}")
+    logging.info(f"Generated SMILES: {generated_smiles}")
 
     return generated_smiles, generated_selfies
 
