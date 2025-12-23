@@ -12,24 +12,6 @@ from rdkit.Chem import Draw
 from rdkit.Chem import MolFromSmiles
 from importlib import resources
 
-device = (
-    torch.accelerator.current_accelerator().type
-    if torch.accelerator.is_available()
-    else "cpu"
-)
-
-stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
-itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
-checkpoint_file = Path(resources.files("chempleter.data").joinpath("model.pt"))
-
-with open(stoi_file) as f:
-    stoi = json.load(f)
-with open(itos_file) as f:
-    itos = json.load(f)
-
-model = ChempleterModel(vocab_size=len(stoi))
-checkpoint = torch.load(checkpoint_file,map_location=device,weights_only=True)
-model.load_state_dict(checkpoint['model_state_dict'])
 
 
 def _validate_smiles(smiles):
@@ -52,7 +34,7 @@ def show_generated_molecule():
     # set parameters from gui
     length = length_slider.value
     max_len=int(length*100)
-    min_len = int((length/4)*100)
+    min_len = int((length/2)*100)
     next_atom_criteria = "greedy" if sampling_radio.value == "Most probable" else "top_k_temperature"
 
     # generate
@@ -101,36 +83,64 @@ def show_generated_molecule():
     smiles_input.enable()
     generate_button.set_text("Generate")
 
-with ui.row(wrap=False).classes("w-128"):
-    smiles_input = ui.input("Enter SMILES",validation=lambda value: 'Invalid SMILES' if _validate_smiles(value)[0] is False else None)
 
-with ui.card().tight():
-    with ui.row(wrap=False):
-        alter_prompt_checkbox = ui.checkbox("Allow prompt modification")
-    with ui.row(wrap=False):
-        ui.chip("Sampling: ",color="white")
-        sampling_radio = ui.radio(["Most probable", "Random"], value="Random").props('inline')
-    with ui.row(wrap=False).classes("w-128"):
-        ui.chip("Molecule size: ",color="white")
-        ui.chip("Smaller")
-        length_slider = ui.slider(min=0.1, max=1, step=0.05, value=0.5)
-        ui.chip("Larger")
+device = (
+    torch.accelerator.current_accelerator().type
+    if torch.accelerator.is_available()
+    else "cpu"
+)
 
-with ui.row():
-    current_prompt_label = ui.label("Processed prompt :")
-    current_prompt = ui.label().bind_text_from(smiles_input, "value",backward=_validate_smiles)
+stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
+itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
+checkpoint_file = Path(resources.files("chempleter.data").joinpath("model.pt"))
+logo_path = Path(resources.files("chempleter.data").joinpath("chempleter_logo.png"))
 
-with ui.row():
-    generated_smiles_label = ui.label("Generated SMILES:")
-    current_generated_smiles = ui.label()
+with open(stoi_file) as f:
+    stoi = json.load(f)
+with open(itos_file) as f:
+    itos = json.load(f)
+
+model = ChempleterModel(vocab_size=len(stoi))
+checkpoint = torch.load(checkpoint_file,map_location=device,weights_only=True)
+model.load_state_dict(checkpoint['model_state_dict'])
 
 
-generate_button = ui.button("Generate",on_click=show_generated_molecule)
+ui.page_title('Chempleter')
+with ui.column().classes("absolute-center"):
+    with ui.row(wrap=False).classes("w-128 justify-center"):
+        ui.image(logo_path).classes("w-64")
 
-with ui.card(align_items="center").tight():
 
-    molecule_image  = ui.image().style('width: 300px')
-    with ui.card_section():
-        generated_smiles_label = ui.label("")
+    with ui.card().tight():
+        with ui.row(wrap=False).classes("w-128 justify-center"):
+            smiles_input = ui.input("Enter SMILES",validation=lambda value: 'Invalid SMILES' if _validate_smiles(value)[0] is False else None)
+        with ui.row(wrap=False):
+            alter_prompt_checkbox = ui.checkbox("Allow prompt modification")
+        with ui.row(wrap=False):
+            ui.chip("Sampling: ",color="white")
+            sampling_radio = ui.radio(["Most probable", "Random"], value="Random").props('inline')
+        with ui.row(wrap=False).classes("w-128"):
+            ui.chip("Molecule size: ",color="white")
+            ui.chip("Smaller")
+            length_slider = ui.slider(min=0.1, max=1, step=0.05, value=0.5)
+            ui.chip("Larger")
 
-ui.run()
+    with ui.row():
+        current_prompt_label = ui.label("Processed prompt :")
+        current_prompt = ui.label().bind_text_from(smiles_input, "value",backward=_validate_smiles)
+
+    with ui.row():
+        generated_smiles_label = ui.label("Generated SMILES:")
+        current_generated_smiles = ui.label()
+
+    with ui.row().classes("w-128 justify-center"):
+        generate_button = ui.button("Generate",on_click=show_generated_molecule)
+
+    with ui.card(align_items="center").tight().classes("w-128 justify-center"):
+        molecule_image  = ui.image().style('width: 300px')
+        with ui.card_section():
+            generated_smiles_label = ui.label("")
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(favicon=logo_path)
