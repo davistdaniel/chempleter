@@ -15,7 +15,7 @@ def selfies_encoder(smiles_rep):
         return pd.NA, e
 
 
-def generate_input_data(smiles_csv_path):
+def generate_input_data(smiles_csv_path,working_dir=None):
     """
     This function takes a single csv files containing SMILES
     
@@ -23,6 +23,14 @@ def generate_input_data(smiles_csv_path):
     """
 
     smiles_path = Path(smiles_csv_path)
+
+    if working_dir is not None:
+        working_dir = Path(working_dir)
+    else:
+        working_dir = Path().cwd()
+
+    if not working_dir.exists():
+        raise FileNotFoundError(working_dir,"  not found.")
 
     if smiles_path.exist():
         df = pd.read_csv(smiles_path)
@@ -33,18 +41,18 @@ def generate_input_data(smiles_csv_path):
     else:
         raise FileNotFoundError(smiles_csv_path,"  not found.")
     
-    df.to_csv("seflies_data_raw.csv")
+    df.to_csv(working_dir / "seflies_raw.csv")
     
     df_clean = df.dropna()
-    df_clean.to_csv("selfies_data_clean.csv")
+    df_clean.to_csv(working_dir / "selfies_clean.csv")
 
     selfies_list = df_clean["selfies"].to_list()
     alphabet = sf.get_alphabet_from_selfies(selfies_list)
     alphabet = ["[PAD]","[START]","[END]"]+list(sorted(alphabet))
-    selfies_to_integer = dict(zip(alphabet,range(len(alphabet)))) #stoic file
+    selfies_to_integer = dict(zip(alphabet,range(len(alphabet)))) #stoi file
     integer_to_selfies = list(selfies_to_integer.keys()) #itos file
 
-    with open("selfies_to_integer.json","w") as f:
+    with open(working_dir / "stoi.json","w") as f:
         json.dump(selfies_to_integer,f)
-    with open("integer_to_selfies.json","w") as f:
-        json.dump(integer_to_selfies,f)
+    with open("itos.json","w") as f:
+        json.dump(working_dir / integer_to_selfies,f)
