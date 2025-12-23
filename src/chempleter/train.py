@@ -1,7 +1,9 @@
 import torch
+import time
 import torch.optim as optim
 from torch import nn
 from pathlib import Path
+from torch.nn.utils import clip_grad_norm_
 
 device = (
     torch.accelerator.current_accelerator().type
@@ -14,12 +16,14 @@ def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=d
     model.train()
     total_loss = 0
 
-    for batch_idx, batch in enumerate(dataloader):
+    for batch_idx, batch_tuple in enumerate(dataloader):
+        batch = batch_tuple[0]
+        batch_tensor_lengths = batch_tuple[1]
         batch = batch.to(device)
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
-        logits, _ = model(inputs)
+        logits, _ = model(inputs,batch_tensor_lengths-1)
         logits_flat = logits.view(-1, logits.size(-1))
         targets_flat = targets.reshape(-1)
         loss = criterion(logits_flat, targets_flat)
@@ -28,11 +32,13 @@ def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=d
             print(f"Batch {batch_idx + 1}/{len(dataloader)} - Loss: {loss.item():.4f}")
 
         loss.backward()
+
+        clip_grad_norm_(model.parameters(), max_norm=1.0)
+
         optimizer.step()
         optimizer.zero_grad()
 
         total_loss += loss.item()
-
         avg_loss = total_loss / len(dataloader)
 
     if scheduler:
@@ -61,14 +67,17 @@ def start_training(
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="min", patience=3, factor=0.1
         )
-        current_lr = scheduler.get_last_lr()
+        
     if not model_save_path:
         model_save_path = Path().cwd()
     else:
         model_save_path = Path(model_save_path)
 
+    current_lr = scheduler.get_last_lr()
+
     best_loss = float("inf")
     for epoch in range(n_epochs):
+        start_time = time.time()
         avg_loss = train_one_epoch(
             model, dataloader, optimizer, criterion, scheduler, device
         )
@@ -84,9 +93,12 @@ def start_training(
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
+                    "scheduler_state_dict": scheduler.state_dict(),
                     "loss": avg_loss,
                     "current_lr": current_lr,
                 },
                 model_save_path / "checkpoint.pt",
             )
             print(f"Saved model at Epoch {epoch}")
+        
+        print(f"Time taken for Epoch {epoch}: {time.time()-start_time}")
