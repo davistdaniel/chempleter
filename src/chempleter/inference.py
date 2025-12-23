@@ -182,11 +182,17 @@ def generation_loop(
         seed_ids = [stoi[symbol] for symbol in prompt]
         generated_ids = seed_ids[:]
         current_input = torch.tensor([seed_ids]).to(device)
+        
         hidden = None
 
         for i in range(max_len):
-            logits, hidden = model(current_input, hidden)
+
+            current_lengths = torch.tensor([current_input.size(1)])
+
+
+            logits, hidden = model(current_input, current_lengths, hidden)
             last_atom_logits = logits[0, -1, :]
+
 
             next_atom_id = handle_sampling(
                 last_atom_logits, next_atom_criteria, temperature, k
