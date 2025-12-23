@@ -101,7 +101,11 @@ Performance metrics were evaluated across 500 independent generations using a mo
 * src/chempleter/data :  Contains trained model, vocabulary files
 
 # License
-MIT
+
+[MIT]("LICENSE") License
+
+Copyright (c) 2025 Davis Thomas Daniel
+
 
 
 
