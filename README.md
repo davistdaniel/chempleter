@@ -63,3 +63,13 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     from rdkit import Chem
     Chem.Draw.MolToImage(generated_mol)
     ```
+
+## Current model performance
+
+Performance metrics were evaluated across 500 independent generations using a model checkpoint trained for 20 epochs with a batch size of 64.
+
+| Metric     | Value | Description                                                                                                  |
+|------------|-------|--------------------------------------------------------------------------------------------------------------|
+| Validity   | 1.0   | Proportion of Generated SMILES which respect chemical syntax; tested using selfies decoder and RDkit parser. |
+| Uniqueness | 0.96  | Proportion of Generated SMILES which were unique                                                             |
+| Novelty    | 0.83  | Proportion of Generated SMILES which were different from the training datatset                                    |
