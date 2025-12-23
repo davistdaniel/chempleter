@@ -6,7 +6,7 @@ import logging
 
 # logging setup
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s",
 )
 

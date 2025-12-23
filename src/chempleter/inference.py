@@ -154,9 +154,9 @@ def output_molecule(generated_ids, itos):
             if itos[idx] not in ["[END]", "[START]", "[PAD]"]
         ]
     )
-    print(f"Generated SELFIE: {generated_selfies}")
+    #print(f"Generated SELFIE: {generated_selfies}")
     generated_smiles = sf.decoder(generated_selfies)
-    print(f"Generated SMILES: {generated_smiles}")
+    #print(f"Generated SMILES: {generated_smiles}")
 
     return generated_smiles, generated_selfies
 
@@ -258,7 +258,7 @@ def extend(
 
     if model is None:
         model = ChempleterModel(vocab_size=len(stoi))
-        checkpoint = torch.load(default_checkpoint_file, weights_only=True)
+        checkpoint = torch.load(default_checkpoint_file, map_location=device, weights_only=True)
         model.load_state_dict(checkpoint["model_state_dict"])
 
     model.to(device)
