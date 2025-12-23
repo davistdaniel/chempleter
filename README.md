@@ -20,8 +20,8 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 ## Prerequisites
 * Python ">=3.13"
-* uv (optional but recommended)
-* See pyproject.toml for dependencies.
+* [uv](https://docs.astral.sh/uv/)
+* See [pyproject.toml](pyproject.toml) for dependencies.
 
 ## Get started
 
@@ -71,13 +71,13 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 ## Notes
 
-### Framework
+### Characteristics
 
 * Training data
     * QM9 and ZINC datasets. 379997 molecules were used for training in total.
 * Running wihout a GPU
     * Chempleter uses a 2-layer GRU, it should run comfortably on a CPU.
-* 
+ 
 
 ### Current model performance
 
