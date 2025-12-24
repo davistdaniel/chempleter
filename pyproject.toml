@@ -1,16 +1,24 @@
 [project]
 name = "chempleter"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lightweight generative model that extends SMILES fragments into syntactically valid molecules"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "nicegui>=3.4.1",
     "pandas>=2.3.3",
     "pathlib>=1.0.1",
     "rdkit>=2025.9.3",
     "selfies>=2.2.0",
     "torch>=2.9.1",
 ]
+
+classifiers = [
+    "License :: OSI Approved :: MIT License"
+]
+license = "MIT"
+license-files = ["LICENSE"]
+
 
 [project.optional-dependencies]
 cpu = [
@@ -19,16 +27,12 @@ cpu = [
 gpu128 = [
   "torch>=2.9.1",
 ]
-gui = [
-    "nicegui>=3.4.1",
-]
 
 [tool.uv.sources]
 torch = [
   { index = "pytorch-cpu" , extra = "cpu"},
   { index = "pytorch-cu128", extra = "gpu128" },
 ]
-
 
 [tool.uv]
 conflicts = [
@@ -60,7 +64,9 @@ package-data = {"chempleter" = ["data/*"]}
 dev = [
     "ipykernel>=7.1.0",
     "jupyter>=1.1.1",
+    "marimo>=0.18.4",
     "pytest>=9.0.2",
     "ruff>=0.14.10",
     "tqdm>=4.67.1",
+    "twine>=6.2.0",
 ]

@@ -1,12 +1,13 @@
 # chempleter
+
+__version__ = "0.1.0"
+
 from pathlib import Path
-
-
 import logging
 
 # logging setup
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s",
 )
 
