@@ -3,11 +3,14 @@ import selfies as sf
 import pandas as pd
 from pathlib import Path
 
-def selfies_encoder(smiles_rep):
+def _selfies_encoder(smiles_rep):
     """
-    This functions encodes a SMILES representation into SELFIES representation
-    
-    :param smiles_rep: Description
+    Encode a SMILES representation into a SELFIES representation.
+
+    :param smiles_rep: SMILES string to encode.
+    :type smiles_rep: str
+    :returns: Tuple of (SELFIES string or pandas.NA, "No error" or EncoderError instance).
+    :rtype: tuple
     """
     try:
         return sf.encoder(smiles_rep), "No error"
@@ -15,11 +18,18 @@ def selfies_encoder(smiles_rep):
         return pd.NA, e
 
 
-def generate_input_data(smiles_csv_path,working_dir=None):
+def generate_input_data(smiles_csv_path, working_dir=None):
     """
-    This function takes a single csv files containing SMILES
-    
-    :param smiles_csv_file: str, path to csv files containing SMILES
+    Generate SELFIES and mapping files from a CSV file of SMILES strings.
+
+    :param smiles_csv_path: Path to a CSV file containing a column named "smiles".
+    :type smiles_csv_path: str or pathlib.Path
+    :param working_dir: Directory in which output files will be written. If None, the current working directory is used.
+    :type working_dir: str or pathlib.Path or None
+    :raises FileNotFoundError: If the smiles CSV path or working directory do not exist.
+    :raises ValueError: If the CSV file does not contain a "smiles" column.
+    :returns: Tuple of file paths to cleaned selfies file, stoi file and itos file
+    :rtype: tuple
     """
 
     smiles_path = Path(smiles_csv_path)
@@ -32,10 +42,10 @@ def generate_input_data(smiles_csv_path,working_dir=None):
     if not working_dir.exists():
         raise FileNotFoundError(working_dir,"  not found.")
 
-    if smiles_path.exist():
+    if smiles_path.exists():
         df = pd.read_csv(smiles_path)
-        if "smiles" in df.columns():
-            df["selfies"], df["selfies_encode_error"] = zip(*df["smiles"].apply(selfies_encoder))
+        if "smiles" in df.columns:
+            df["selfies"], df["selfies_encode_error"] = zip(*df["smiles"].apply(_selfies_encoder))
         else:
             raise ValueError("Column `smiles` not found in the CSV file.")
     else:
@@ -43,6 +53,7 @@ def generate_input_data(smiles_csv_path,working_dir=None):
     
     df.to_csv(working_dir / "seflies_raw.csv")
     
+    # drop all for which selfies encoding gave an error
     df_clean = df.dropna()
     df_clean.to_csv(working_dir / "selfies_clean.csv")
 
@@ -54,5 +65,11 @@ def generate_input_data(smiles_csv_path,working_dir=None):
 
     with open(working_dir / "stoi.json","w") as f:
         json.dump(selfies_to_integer,f)
-    with open("itos.json","w") as f:
-        json.dump(working_dir / integer_to_selfies,f)
+    with open(working_dir / "itos.json","w") as f:
+        json.dump(integer_to_selfies,f)
+
+    selfies_file = working_dir / "selfies_clean.csv"
+    stoi_file = working_dir /  "stoi.json"
+    itos_file = working_dir/ "itos.json"
+
+    return selfies_file, stoi_file, itos_file

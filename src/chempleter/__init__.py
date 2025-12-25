@@ -7,12 +7,18 @@ import logging
 
 # logging setup
 logging.basicConfig(
-    level=logging.ERROR,
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s",
 )
 
 
-def start_workflow(experiment_name,working_dir=None):
+def start_experiment(experiment_name,working_dir=None):
+    """
+    Docstring for start_experiment
+    
+    :param experiment_name: Description
+    :param working_dir: Description
+    """
 
     if not working_dir:
         working_dir = Path().cwd() / experiment_name
@@ -23,3 +29,5 @@ def start_workflow(experiment_name,working_dir=None):
     working_dir.mkdir(parents=True, exist_ok=True)
 
     return working_dir
+
+

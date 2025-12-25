@@ -18,14 +18,18 @@ device = (
 
 def handle_prompt(smiles, selfies, stoi, alter_prompt):
     """
-    This fucntion handles the smiles input by the user.
+    This function handles the smiles input by the user.
     Note that the selfies can be directly given, in that case, it will just add the "[START]" token.
     If neither selfies nor smiles is given, the "[START]" token is used as prompt.
 
-    :param smiles: str, input SMILES
-    :param selfies: list, A list of SELFIES tokens
-    :param stoi: dict, strings to integer mapping
-    :param alter_prompt: bool, Flag for prompt modification during input and generation
+    :param smiles: input SMILES
+    :type smiles: str
+    :param selfies: A list of SELFIES tokens
+    :type selfies: list
+    :param stoi: strings to integer mapping
+    :type stoi: dict
+    :param alter_prompt: Flag for prompt modification during input and generation
+    :type alter_prompt: bool
     """
     if selfies is not None:
         logging.info(f"Input SELFIES: {smiles}")
@@ -75,11 +79,16 @@ def handle_prompt(smiles, selfies, stoi, alter_prompt):
 
 def handle_len(prompt, min_len, max_len):
     """
-    This function sets safe limits for minimum and maximum lenght of generated tokens.
+    Adjust minimum and maximum generated-token lengths relative to the prompt length.
 
-    :param prompt: str, the input prompt
-    :param min_len: int, minimum length of generated tokens
-    :param max_len: int, maximum length of generated tokens
+    :param prompt: Input prompt used to compute its length.
+    :type prompt: str
+    :param min_len: Desired minimum generated tokens; if None or less than prompt length it is set to prompt_len + 2.
+    :type min_len: int or None
+    :param max_len: Desired maximum generated tokens (treated as additional tokens); prompt length is added to produce an absolute max.
+    :type max_len: int
+    :returns: Tuple of adjusted (min_len, max_len) as absolute token counts.
+    :rtype: tuple[int, int]
     """
     prompt_len = len(prompt)
 
@@ -108,13 +117,18 @@ def handle_len(prompt, min_len, max_len):
 
 def handle_sampling(last_atom_logits, next_atom_criteria, temperature, k):
     """
-    This function decides    how the next atom/token is sampled.
+    Decide how the next token is sampled.
 
-    :param last_atom_logits: torch.tensor, logits for the last predicted atom
-    :param next_atom_criteria: str, sampling strategy: "greedy", "temperature",
-                                  "top_k_temperature", or "random".
-    :param temperature: float, temperature for softmax sampling.
-    :param k: int, number of top tokens to consider for top-k sampling.
+    :param last_atom_logits: Logits for the last predicted atom.
+    :type last_atom_logits: torch.Tensor
+    :param next_atom_criteria: Sampling strategy; one of "greedy", "temperature", "top_k_temperature", "random".
+    :type next_atom_criteria: str
+    :param temperature: Temperature for softmax sampling.
+    :type temperature: float
+    :param k: Number of top tokens to consider for top-k sampling.
+    :type k: int
+    :returns: Selected next token id.
+    :rtype: int
     """
 
     if next_atom_criteria == "random":
@@ -141,10 +155,14 @@ def handle_sampling(last_atom_logits, next_atom_criteria, temperature, k):
 
 def output_molecule(generated_ids, itos):
     """
-    This function makes a SELFIES string from generated tokens and itos and decodes it.
+    Convert generated token IDs to SELFIES string and decode to SMILES.
 
-    :param generated_ids: list, generated tokens
-    :param itos: list, integers to string mapping
+    :param generated_ids: Generated token IDs
+    :type generated_ids: list
+    :param itos: Integer to string token mapping
+    :type itos: dict
+    :returns: Tuple of (SMILES string, SELFIES string)
+    :rtype: tuple[str, str]
     """
 
     generated_selfies = "".join(
@@ -165,17 +183,26 @@ def generation_loop(
     model, prompt, stoi, min_len, max_len, next_atom_criteria, temperature, k
 ):
     """
-    This is the main genreation loop, which uses the model to produce tokens.
+    This is the main generation loop, which uses the model to produce tokens.
 
-    :param model: ChempleterModel, Trained pytorch model
-    :param prompt: str, input prompt
-    :param stoi: dict, vocabulary or string to integer dict
-    :param min_len: str, minimum length of generated tokens
-    :param max_len: str, maximum length of generated tokens
-    :param next_atom_criteria: str, sampling strategy: "greedy", "temperature",
-                                  "top_k_temperature", or "random".
-    :param temperature: float, temperature for softmax sampling.
-    :param k: int, number of top tokens to consider for top-k sampling.
+    :param model: Trained pytorch model
+    :type model: chempleter.model.ChempleterModel
+    :param prompt: Input prompt
+    :type prompt: list
+    :param stoi: Vocabulary or string to integer dictionary
+    :type stoi: dict
+    :param min_len: Minimum length of generated tokens
+    :type min_len: int
+    :param max_len: Maximum length of generated tokens
+    :type max_len: int
+    :param next_atom_criteria: Sampling strategy, one of "greedy", "temperature", "top_k_temperature", or "random"
+    :type next_atom_criteria: str
+    :param temperature: Temperature for softmax sampling
+    :type temperature: float
+    :param k: Number of top tokens to consider for top-k sampling
+    :type k: int
+    :returns: Generated token IDs
+    :rtype: list
     """
 
     with torch.no_grad():
@@ -229,21 +256,37 @@ def extend(
     alter_prompt=False,
 ):
     """
-    This functions extends a molecule given a substructure.
+    Extend a molecule given a substructure.
 
-    :param model: ChempleterModel, Trained pytorch model
-    :param stoi_file: str, Path to stoi file
-    :param itos_file: str, Path to itos file
-    :param selfies: str, input selfies
-    :param smiles: str, input smiles
-    :param min_len: str, minimum length of generated tokens
-    :param max_len: str, maximum length of generated tokens
-    :param temperature: float, temperature for softmax sampling.
-    :param k: int, number of top tokens to consider for top-k sampling.
-    :param next_atom_criteria: str, sampling strategy: "greedy", "temperature",
-                                  "top_k_temperature", or "random".
-    :param device: str, type of accelartor to use.
-    :param alter_prompt: bool, whether to allow modification of input prompt
+    :param model: Trained ChempleterModel. If None, a default trained model is loaded.
+    :type model: chempleter.model.ChempleterModel or None
+    :param stoi_file: Path to JSON file mapping strings to integers.
+    :type stoi_file: pathlib.Path or None
+    :param itos_file: Path to JSON file mapping integers to strings.
+    :type itos_file: pathlib.Path or None
+    :param selfies: Input SELFIES tokens list (if provided, smiles is ignored).
+    :type selfies: list[str] or None
+    :param smiles: Input SMILES string (used if selfies is None).
+    :type smiles: str
+    :param min_len: Minimum number of generated tokens (absolute final length).
+    :type min_len: int or None
+    :param max_len: Maximum number of generated tokens (treated as additional tokens).
+    :type max_len: int
+    :param temperature: Sampling temperature for softmax sampling.
+    :type temperature: float
+    :param k: Number of top tokens to consider for top-k sampling.
+    :type k: int
+    :param next_atom_criteria: Sampling strategy; one of "greedy", "temperature", "top_k_temperature", "random".
+    :type next_atom_criteria: str
+    :param device: Device identifier to run the model on (e.g. "cpu" or accelerator type).
+    :type device: str
+    :param alter_prompt: Whether to allow prompt alteration if generation fails or input encoding errors occur.
+    :type alter_prompt: bool
+
+    :returns: Tuple with an RDKit molecule, generated SMILES string, and generated SELFIES string.
+    :rtype: tuple[rdkit.Chem.Mol, str, str]
+
+    :raises ValueError: If the generated molecule is invalid.
     """
 
     default_stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))

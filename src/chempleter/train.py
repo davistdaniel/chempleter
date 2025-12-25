@@ -13,24 +13,44 @@ device = (
 
 
 def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=device):
+    """
+    Train the model for one epoch.
+    
+    :param model: Pytorch model to train
+    :type model: chempleter.model.ChempleterModel
+    :param dataloader: DataLoader containing training batches
+    :type dataloader: torch.utils.data.DataLoader
+    :param optimizer: Optimizer for updating model parameters (default: Adam)
+    :type optimizer: torch.optim.Optimizer
+    :param criterion: Loss function to compute training loss (default: CrossEntropyLoss)
+    :type criterion: torch.nn.Module
+    :param scheduler: Learning rate scheduler (default: ReduceLROnPlateau)
+    :type scheduler: torch.optim.lr_scheduler._LRScheduler
+    :param device: Device to run training on (cpu or cuda)
+    :type device: str
+    :return: Average loss for the epoch
+    :rtype: float
+    """
+
     model.train()
     total_loss = 0
 
     for batch_idx, batch_tuple in enumerate(dataloader):
+        # prepare batch
         batch = batch_tuple[0]
         batch_tensor_lengths = batch_tuple[1]
         batch = batch.to(device)
+
+        # set inputs and targets
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
-
+        
         logits, _ = model(inputs,batch_tensor_lengths-1)
         logits_flat = logits.view(-1, logits.size(-1))
         targets_flat = targets.reshape(-1)
         loss = criterion(logits_flat, targets_flat)
-
         if batch_idx % 500 == 0:
             print(f"Batch {batch_idx + 1}/{len(dataloader)} - Loss: {loss.item():.4f}")
-
         loss.backward()
 
         clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -57,8 +77,30 @@ def start_training(
     device=device,
     model_save_path=None,
 ):
+    """
+    Start training the model for a specified number of epochs.
+
+    :param n_epochs: Number of epochs to train the model
+    :type n_epochs: int
+    :param model: Pytorch model to train
+    :type model: chempleter.model.ChempleterModel
+    :param dataloader: DataLoader containing training batches
+    :type dataloader: torch.utils.data.DataLoader
+    :param optimizer: Optimizer for updating model parameters (default: Adam)
+    :type optimizer: torch.optim.Optimizer
+    :param criterion: Loss function to compute training loss (default: CrossEntropyLoss)
+    :type criterion: torch.nn.Module
+    :param scheduler: Learning rate scheduler (default: ReduceLROnPlateau)
+    :type scheduler: torch.optim.lr_scheduler._LRScheduler
+    :param device: Device to run training on (cpu or cuda)
+    :type device: str
+    :param model_save_path: Path to save the model checkpoint
+    :type model_save_path: pathlib.Path
+    """
+    # model to device
     model.to(device)
 
+    # get defaults
     if not optimizer:
         optimizer = optim.Adam(model.parameters(), lr=0.001)
     if not criterion:
@@ -67,14 +109,12 @@ def start_training(
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="min", patience=3, factor=0.1
         )
-        
     if not model_save_path:
         model_save_path = Path().cwd()
     else:
         model_save_path = Path(model_save_path)
 
     current_lr = scheduler.get_last_lr()
-
     best_loss = float("inf")
     for epoch in range(n_epochs):
         start_time = time.time()
