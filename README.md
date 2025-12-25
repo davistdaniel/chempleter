@@ -15,7 +15,7 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
 <div align="center">
-<img src="screenshots/demo.gif" alt="Demo Gif" width="400">
+<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/main/screenshots/demo.gif" alt="Demo Gif" width="400">
 </div>
 
 ## Prerequisites
@@ -41,19 +41,13 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
     ``uv sync --extra cpu``
 
-    For GUI, add it as an extra:
-    
-    ```bash
-    # use --extra cpu instead of --extra gpu128 for CPU inference
-    uv sync --extra gui --extra gpu128
-    ```
 
 ### Usage
-* To start the GUI:
+* To start the Chempleter GUI:
 
     ``uv run src/chempleter/gui.py``
 
-* Use as a python library:
+* To use Chempleter as a python library:
 
     ```python
     from chempleter import extend
@@ -102,7 +96,7 @@ Performance metrics were evaluated across 500 independent generations using a mo
 
 # License
 
-[MIT]("LICENSE") License
+[MIT](https://github.com/davistdaniel/chempleter/tree/main?tab=MIT-1-ov-file#readme) License
 
 Copyright (c) 2025 Davis Thomas Daniel
 
