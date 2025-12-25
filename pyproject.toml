@@ -19,6 +19,8 @@ classifiers = [
 license = "MIT"
 license-files = ["LICENSE"]
 
+[project.scripts]
+chempleter-gui = "chempleter.gui:run_chempleter_gui"
 
 [project.optional-dependencies]
 cpu = [
