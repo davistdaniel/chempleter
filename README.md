@@ -3,6 +3,11 @@
 Chempleter is lightweight generative model which utlises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
 It accepts SMILES notation as input and enforces chemical syntax validity using SELFIES for the generated molecules. 
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/main/screenshots/demo.gif" alt="Demo Gif" width="400">
+</div>
+
+
 * Why was Chempleter made?
     * Mainly for me to get into Pytorch. Also, I find it fun to generate random, possibly unsynthesisable molecules from a starting structure.
 
@@ -14,43 +19,69 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/main/screenshots/demo.gif" alt="Demo Gif" width="400">
-</div>
 
 ## Prerequisites
 * Python ">=3.13"
-* [uv](https://docs.astral.sh/uv/)
+* [uv](https://docs.astral.sh/uv/) (optional but recommended)
 * See [pyproject.toml](pyproject.toml) for dependencies.
 
 ## Get started
 
-### Install using uv
+#### Install using uv
 
 1. Clone this repo
 
     ``git clone https://github.com/davistdaniel/chempleter.git``
 
-2. Install using uv
+2. Inside the project directory, exceute in a terminal:
 
-    In case of using GPU as accelerator and CUDA 12.8:
+    ``uv sync``
+
+    By default, the CPU version of pytorch will be installed, in case of using GPU as accelerator and CUDA 12.8:
 
     ``uv sync --extra gpu128``
 
-    If CPU is used:
+    Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
 
-    ``uv sync --extra cpu``
+#### Install using pip
 
+1. Clone this repo
+
+    ``git clone https://github.com/davistdaniel/chempleter.git``
+
+2. Inside the project directory, exceute in a terminal (a python virtual environment is optional but recommended):
+
+    ``python -m pip install .``
+
+    By default, the CPU version of pytorch will be installed. Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
 
 ### Usage
+
+#### GUI
 * To start the Chempleter GUI:
+    
+    ``chempleter-gui``
+
+    or 
 
     ``uv run src/chempleter/gui.py``
+    
+    or 
+    
+    ``python src/chempleter/gui.py``
+
+* Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
+* Options:
+    * Temperature : Increasing the temperautre would result in more unusual molecules, while lowere values would generate more common structures.
+    * Sampling : Most probable’ selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. ‘Random’ generates a new molecule each time, while still including the input structure.
+
+
+#### As a python library
 
 * To use Chempleter as a python library:
 
     ```python
-    from chempleter import extend
+    from chempleter.inference import extend
     generated_mol, generated_smiles, generated_selfies = extend(smiles="c1ccccc1")
     print(generated_smiles)
     >> C1=CC=CC=C1C2=CC=C(CN3C=NC4=CC=CC=C4C3=O)O2
@@ -62,16 +93,7 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     from rdkit import Chem
     Chem.Draw.MolToImage(generated_mol)
     ```
-
-## Notes
-
-### Characteristics
-
-* Training data
-    * QM9 and ZINC datasets. 379997 molecules were used for training in total.
-* Running wihout a GPU
-    * Chempleter uses a 2-layer GRU, it should run comfortably on a CPU.
- 
+* For details on available parameters, refer to the ``extend`` (``chempleter.inference`` module) function’s docstring.”
 
 ### Current model performance
 
@@ -81,7 +103,7 @@ Performance metrics were evaluated across 500 independent generations using a mo
 |------------|-------|--------------------------------------------------------------------------------------------------------------|
 | Validity   | 1.0   | Proportion of Generated SMILES which respect chemical syntax; tested using selfies decoder and RDkit parser. |
 | Uniqueness | 0.96  | Proportion of Generated SMILES which were unique                                                             |
-| Novelty    | 0.85  | Proportion of Generated SMILES which were different from the training datatset                               |
+| Novelty    | 0.85  | Proportion of Generated SMILES which were not present in the training datatset                             |
 
 
 ### Project structure
@@ -99,6 +121,19 @@ Performance metrics were evaluated across 500 independent generations using a mo
 [MIT](https://github.com/davistdaniel/chempleter/tree/main?tab=MIT-1-ov-file#readme) License
 
 Copyright (c) 2025 Davis Thomas Daniel
+
+# Contributing
+
+Any contribution, improvements, feature ideas or bug fixes are always welcome.
+
+## Random Notes
+
+* Training data
+    * QM9 and ZINC datasets. 379997 molecules were used for training in total.
+* Running wihout a GPU
+    * Chempleter uses a 2-layer GRU, it should run comfortably on a CPU.
+
+
 
 
 
