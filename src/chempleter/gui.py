@@ -1,10 +1,7 @@
 import io
 import base64
-import json
-import torch
 from nicegui import ui
 from chempleter.inference import handle_prompt, extend
-from chempleter.model import ChempleterModel
 from pathlib import Path
 from rdkit.Chem import Draw
 from rdkit.Chem import MolFromSmiles
@@ -21,7 +18,7 @@ def build_chempleter_ui():
             prompt = handle_prompt(
                 smiles,
                 selfies=None,
-                stoi=stoi,
+                stoi=None,
                 alter_prompt=alter_prompt_checkbox.value,
             )
             return True, prompt
@@ -47,9 +44,9 @@ def build_chempleter_ui():
 
         # generate
         generated_molecule, generated_smiles, _ = extend(
-            model=model,
-            stoi_file=stoi_file,
-            itos_file=itos_file,
+            model=None,
+            stoi_file=None,
+            itos_file=None,
             smiles=smiles_input.value,
             min_len=min_len,
             max_len=max_len,
@@ -102,24 +99,7 @@ def build_chempleter_ui():
         smiles_input.enable()
         generate_button.set_text("Generate")
 
-    device = (
-        torch.accelerator.current_accelerator().type
-        if torch.accelerator.is_available()
-        else "cpu"
-    )
-
-    stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
-    itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
-    checkpoint_file = Path(resources.files("chempleter.data").joinpath("model.pt"))
     logo_path = Path(resources.files("chempleter.data").joinpath("chempleter_logo.png"))
-
-    with open(stoi_file) as f:
-        stoi = json.load(f)
-
-    model = ChempleterModel(vocab_size=len(stoi))
-    checkpoint = torch.load(checkpoint_file, map_location=device, weights_only=True)
-    model.load_state_dict(checkpoint["model_state_dict"])
-
     ui.page_title("Chempleter")
     with ui.column().classes("w-full min-h-screen items-center overflow-auto py-8"):
         with ui.row(wrap=False).classes("w-128 justify-center"):
@@ -170,7 +150,7 @@ def run_chempleter_gui():
     This function runs the ui.run and acts as the entry point for the script chempleter-gui
     """
     favicon_path = Path(resources.files("chempleter.data").joinpath("chempleter.ico"))
-    ui.run(favicon=favicon_path, reload=False, show=True, root=build_chempleter_ui)
+    ui.run(favicon=favicon_path, reload=False, root=build_chempleter_ui)
 
 
 if __name__ in {"__main__", "__mp_main__"}:
