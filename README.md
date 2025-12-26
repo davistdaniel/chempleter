@@ -22,38 +22,38 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 ## Prerequisites
 * Python ">=3.13"
-* [uv](https://docs.astral.sh/uv/) (optional but recommended)
 * See [pyproject.toml](pyproject.toml) for dependencies.
+* [uv](https://docs.astral.sh/uv/) (optional but recommended)
 
 ## Get started
 
-#### Install using uv
 
-1. Clone this repo
+You can install chempleter using any one of the following ways:
 
-    ``git clone https://github.com/davistdaniel/chempleter.git``
+- #### Install from PyPi
 
-2. Inside the project directory, exceute in a terminal:
-
-    ``uv sync``
-
-    By default, the CPU version of pytorch will be installed, in case of using GPU as accelerator and CUDA 12.8:
-
-    ``uv sync --extra gpu128``
-
-    Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
-
-#### Install using pip
-
-1. Clone this repo
-
-    ``git clone https://github.com/davistdaniel/chempleter.git``
-
-2. Inside the project directory, exceute in a terminal (a python virtual environment is optional but recommended):
-
-    ``python -m pip install .``
+    ``python -m pip install chempleter``
 
     By default, the CPU version of pytorch will be installed. Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
+
+- #### Install using uv
+
+    1. Clone this repo
+
+        ``git clone https://github.com/davistdaniel/chempleter.git``
+
+    2. Inside the project directory, exceute in a terminal:
+
+        ``uv sync``
+
+        By default, the CPU version of pytorch will be installed, in case of using GPU as accelerator and CUDA 12.8:
+
+        ``uv sync --extra gpu128``
+
+        Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
+
+
+    
 
 ### Usage
 
@@ -65,10 +65,7 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     or 
 
     ``uv run src/chempleter/gui.py``
-    
-    or 
-    
-    ``python src/chempleter/gui.py``
+
 
 * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
 * Options:
