@@ -15,7 +15,7 @@ device = (
 def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=device):
     """
     Train the model for one epoch.
-    
+
     :param model: Pytorch model to train
     :type model: chempleter.model.ChempleterModel
     :param dataloader: DataLoader containing training batches
@@ -44,8 +44,8 @@ def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=d
         # set inputs and targets
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
-        
-        logits, _ = model(inputs,batch_tensor_lengths-1)
+
+        logits, _ = model(inputs, batch_tensor_lengths - 1)
         logits_flat = logits.view(-1, logits.size(-1))
         targets_flat = targets.reshape(-1)
         loss = criterion(logits_flat, targets_flat)
@@ -140,5 +140,5 @@ def start_training(
                 model_save_path / "checkpoint.pt",
             )
             print(f"Saved model at Epoch {epoch}")
-        
-        print(f"Time taken for Epoch {epoch}: {time.time()-start_time}")
+
+        print(f"Time taken for Epoch {epoch}: {time.time() - start_time}")

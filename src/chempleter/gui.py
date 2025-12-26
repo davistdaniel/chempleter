@@ -181,9 +181,7 @@ def build_chempleter_ui():
     ):
         ui.label(f"Chempleter v.{__version__}.")
         ui.link("View on GitHub", "https://github.com/davistdaniel/chempleter").style(
-            "font-weight: normal; "
-            "color: grey; "
-            "font-size: 15px; "
+            "font-weight: normal; color: grey; font-size: 15px; "
         )
 
 

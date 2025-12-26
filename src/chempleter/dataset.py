@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
+
 class ChempleterDataset(Dataset):
     """
     PyTorch Dataset for SELFIES molecular representations.
@@ -17,22 +18,25 @@ class ChempleterDataset(Dataset):
     :returns: Integer tensor representation of tokenized molecule with dtype=torch.long.
     :rtype: torch.Tensor
     """
-    def __init__(self, selfies_file,stoi_file):
+
+    def __init__(self, selfies_file, stoi_file):
         super().__init__()
         selfies_dataframe = pd.read_csv(selfies_file)
         self.data = selfies_dataframe["selfies"].to_list()
         with open(stoi_file) as f:
             self.selfies_to_integer = json.load(f)
-        
+
     def __len__(self):
         return len(self.data)
-    
+
     def __getitem__(self, index):
-        
         molecule = self.data[index]
-        symbols_molecule = ["[START]"]+list(sf.split_selfies(molecule))+["[END]"]
-        integer_molecule = [self.selfies_to_integer[symbol] for symbol in symbols_molecule]
-        return torch.tensor(integer_molecule,dtype=torch.long)
+        symbols_molecule = ["[START]"] + list(sf.split_selfies(molecule)) + ["[END]"]
+        integer_molecule = [
+            self.selfies_to_integer[symbol] for symbol in symbols_molecule
+        ]
+        return torch.tensor(integer_molecule, dtype=torch.long)
+
 
 def collate_fn(batch):
     """
@@ -49,13 +53,14 @@ def collate_fn(batch):
     :rtype: Tuple[torch.Tensor, torch.Tensor]
     """
 
-    tensor_lengths  = torch.tensor([len(x) for x in batch])
+    tensor_lengths = torch.tensor([len(x) for x in batch])
     tensor_lengths, sorted_idx = tensor_lengths.sort(descending=True)
     batch = [batch[i] for i in sorted_idx]
-    
-    padded_batch = pad_sequence(batch, batch_first=True,padding_value=0)
+
+    padded_batch = pad_sequence(batch, batch_first=True, padding_value=0)
 
     return padded_batch, tensor_lengths
+
 
 def get_dataloader(dataset, batch_size=64, shuffle=True, collate_fn=collate_fn):
     """
@@ -72,4 +77,6 @@ def get_dataloader(dataset, batch_size=64, shuffle=True, collate_fn=collate_fn):
     :return: Configured DataLoader.
     :rtype: torch.utils.data.DataLoader
     """
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+    return DataLoader(
+        dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn
+    )

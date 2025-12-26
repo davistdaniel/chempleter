@@ -180,9 +180,12 @@ def output_molecule(generated_ids, itos):
     logging.info(f"Generated SELFIE: {generated_selfies}")
     generated_smiles = sf.decoder(generated_selfies)
     logging.info(f"Generated SMILES from decoding: {generated_smiles}")
-    ignored_token_proportion = (len(generated_selfies)-len(sf.encoder(generated_smiles)))/len(generated_selfies)
-    logging.info(f"Proportion of generated tokens ignored by SELFIES decoding : {ignored_token_proportion}")
-
+    ignored_token_proportion = (
+        len(generated_selfies) - len(sf.encoder(generated_smiles))
+    ) / len(generated_selfies)
+    logging.info(
+        f"Proportion of generated tokens ignored by SELFIES decoding : {ignored_token_proportion}"
+    )
 
     return generated_smiles, generated_selfies
 
@@ -217,17 +220,14 @@ def generation_loop(
         seed_ids = [stoi[symbol] for symbol in prompt]
         generated_ids = seed_ids[:]
         current_input = torch.tensor([seed_ids]).to(device)
-        
+
         hidden = None
 
         for i in range(max_len):
-
             current_lengths = torch.tensor([current_input.size(1)])
-
 
             logits, hidden = model(current_input, current_lengths, hidden)
             last_atom_logits = logits[0, -1, :]
-
 
             next_atom_id = handle_sampling(
                 last_atom_logits, next_atom_criteria, temperature, k
@@ -248,7 +248,8 @@ def generation_loop(
 
     return generated_ids
 
-def _get_default_data(model,stoi_file,itos_file):
+
+def _get_default_data(model, stoi_file, itos_file):
     default_stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
     default_itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
     default_checkpoint_file = Path(
@@ -270,10 +271,13 @@ def _get_default_data(model,stoi_file,itos_file):
     if model is None:
         logging.info("Using default model checkpoint")
         model = ChempleterModel(vocab_size=len(stoi))
-        checkpoint = torch.load(default_checkpoint_file, map_location=device, weights_only=True)
+        checkpoint = torch.load(
+            default_checkpoint_file, map_location=device, weights_only=True
+        )
         model.load_state_dict(checkpoint["model_state_dict"])
 
     return stoi, itos, model
+
 
 def extend(
     model=None,
@@ -324,11 +328,11 @@ def extend(
     """
 
     # get default data if model, stoi or itos is not given
-    stoi, itos, model = _get_default_data(model,stoi_file,itos_file)
+    stoi, itos, model = _get_default_data(model, stoi_file, itos_file)
 
     # put model in evaluation mode
     model.to(device)
-    model.eval()  
+    model.eval()
 
     # check prompt
     prompt = handle_prompt(smiles, selfies, stoi, alter_prompt)
@@ -369,6 +373,5 @@ def extend(
     m = Chem.MolFromSmiles(generated_smiles)
     if m is None:
         raise ValueError("Invalid molecule")
-
 
     return m, generated_smiles, generated_selfies
