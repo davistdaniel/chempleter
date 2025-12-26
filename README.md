@@ -90,7 +90,7 @@ You can install chempleter using any one of the following ways:
     from rdkit import Chem
     Chem.Draw.MolToImage(generated_mol)
     ```
-* For details on available parameters, refer to the ``extend`` (``chempleter.inference`` module) function’s docstring.”
+* For details on available parameters, refer to the ``extend`` (``chempleter.inference`` module) function’s docstring.
 
 ### Current model performance
 
