@@ -1,6 +1,6 @@
 # chempleter
 
-__version__ = "0.1.0b1"
+__version__ = "0.1.0b2"
 
 from pathlib import Path
 import logging
