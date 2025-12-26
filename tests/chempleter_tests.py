@@ -1,12 +1,11 @@
 import pytest
 import pandas as pd
 import json
+import torch
 from chempleter.processor import generate_input_data, _selfies_encoder
 from chempleter.model import ChempleterModel
 from chempleter.dataset import ChempleterDataset, collate_fn
-from chempleter.inference import handle_prompt, handle_len, handle_sampling, output_molecule
-import torch
-
+from chempleter.inference import handle_prompt, handle_len, handle_sampling, output_molecule, extend, _get_default_data
 
 @pytest.fixture
 def mock_stoi():
@@ -244,3 +243,35 @@ class TestChempleterInference():
         assert selfies == "[C][O]"
         assert smiles == "CO"
 
+    def test_extend(self):
+
+        model = ChempleterModel(vocab_size=2)
+        m, smiles, selfies = extend(smiles="C", model=model, stoi_file=None, itos_file=None,next_atom_criteria="greedy",max_len=2)
+        assert smiles == "C"
+        assert selfies == "[C]"
+
+    def test_get_default_data_no_files_given(self):
+
+        stoi, itos, model = _get_default_data(model=None,stoi_file=None,itos_file=None)
+
+        assert type(stoi) is dict
+        assert type(itos) is list
+        assert type(model) is ChempleterModel
+
+    def test_get_default_data_files_given(self,tmp_path):
+
+        stoi_file = tmp_path / "stoi.json"
+        stoi = {"[PAD]": 0, "[START]": 1, "[END]": 2, "[C]": 3, "[O]": 4}
+        with open(stoi_file, "w") as f:
+            json.dump(stoi, f)
+
+        itos_file = tmp_path / "itos.json"
+        itos = ["[PAD]", "[START]", "[END]", "[C]", "[O]"]
+        with open(itos_file, "w") as f:
+            json.dump(itos, f)
+
+        stoi, itos, model = _get_default_data(model=ChempleterModel(vocab_size=len(stoi)),stoi_file=stoi_file,itos_file=itos_file)
+
+        assert type(stoi) is dict
+        assert type(itos) is list
+        assert type(model) is ChempleterModel
