@@ -68,6 +68,7 @@ dev = [
     "jupyter>=1.1.1",
     "marimo>=0.18.4",
     "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.14.10",
     "tqdm>=4.67.1",
     "twine>=6.2.0",
