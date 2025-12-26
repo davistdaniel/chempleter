@@ -6,7 +6,7 @@ from pathlib import Path
 from rdkit.Chem import Draw
 from rdkit.Chem import MolFromSmiles
 from importlib import resources
-
+from chempleter import __version__
 
 def build_chempleter_ui():
     """
@@ -109,6 +109,7 @@ def build_chempleter_ui():
             with ui.row(wrap=False).classes("w-128 justify-center"):
                 smiles_input = ui.input(
                     "Enter SMILES",
+                    placeholder="c1ccccc1",
                     validation=lambda value: "Invalid SMILES"
                     if _validate_smiles(value)[0] is False
                     else None,
@@ -139,11 +140,24 @@ def build_chempleter_ui():
         with ui.row().classes("w-128 justify-center"):
             generate_button = ui.button("Generate", on_click=show_generated_molecule)
 
-        with ui.card(align_items="center").tight().classes("w-128 justify-center"):
+        with ui.card(align_items="center").tight().classes("w- 256 justify-center"):
+
             molecule_image = ui.image().style("width: 300px")
             with ui.card_section():
                 generated_smiles_label = ui.label("")
 
+    with ui.footer().classes("justify-center").style(
+        'height: 30px; text-align: center; padding: 2px; '
+        'font-size: 15px; background-color: white; color: grey;'
+    ):
+        
+        ui.label(f"Chempleter v.{__version__}.")
+        ui.link("View on GitHub", 'https://github.com/davistdaniel/chempleter')\
+            .style(
+                'font-weight: normal; '
+                'color: grey; '  # GitHub blue
+                'font-size: 15px; '
+            )
 
 def run_chempleter_gui():
     """
