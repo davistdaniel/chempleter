@@ -1,17 +1,43 @@
 import io
 import base64
+import json
+import torch
 from nicegui import ui
 from chempleter.inference import handle_prompt, extend
+from chempleter.model import ChempleterModel
 from pathlib import Path
 from rdkit.Chem import Draw
 from rdkit.Chem import MolFromSmiles
 from importlib import resources
 from chempleter import __version__
 
+
 def build_chempleter_ui():
     """
     Build Chempleter GUI using Nicegui. This fucntion also reads in the trained model, vocabulary files.
     """
+
+    # load data
+    device = (
+        torch.accelerator.current_accelerator().type
+        if torch.accelerator.is_available()
+        else "cpu"
+    )
+
+    default_stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
+    default_itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
+    default_checkpoint_file = Path(
+        resources.files("chempleter.data").joinpath("model.pt")
+    )
+
+    with open(default_stoi_file) as f:
+        stoi = json.load(f)
+
+    model = ChempleterModel(vocab_size=len(stoi))
+    checkpoint = torch.load(
+        default_checkpoint_file, map_location=device, weights_only=True
+    )
+    model.load_state_dict(checkpoint["model_state_dict"])
 
     def _validate_smiles(smiles):
         try:
@@ -44,9 +70,9 @@ def build_chempleter_ui():
 
         # generate
         generated_molecule, generated_smiles, _ = extend(
-            model=None,
-            stoi_file=None,
-            itos_file=None,
+            model=model,
+            stoi_file=default_stoi_file,
+            itos_file=default_itos_file,
             smiles=smiles_input.value,
             min_len=min_len,
             max_len=max_len,
@@ -141,23 +167,25 @@ def build_chempleter_ui():
             generate_button = ui.button("Generate", on_click=show_generated_molecule)
 
         with ui.card(align_items="center").tight().classes("w- 256 justify-center"):
-
             molecule_image = ui.image().style("width: 300px")
             with ui.card_section():
                 generated_smiles_label = ui.label("")
 
-    with ui.footer().classes("justify-center").style(
-        'height: 30px; text-align: center; padding: 2px; '
-        'font-size: 15px; background-color: white; color: grey;'
+    with (
+        ui.footer()
+        .classes("justify-center")
+        .style(
+            "height: 30px; text-align: center; padding: 2px; "
+            "font-size: 15px; background-color: white; color: grey;"
+        )
     ):
-        
         ui.label(f"Chempleter v.{__version__}.")
-        ui.link("View on GitHub", 'https://github.com/davistdaniel/chempleter')\
-            .style(
-                'font-weight: normal; '
-                'color: grey; '  # GitHub blue
-                'font-size: 15px; '
-            )
+        ui.link("View on GitHub", "https://github.com/davistdaniel/chempleter").style(
+            "font-weight: normal; "
+            "color: grey; "
+            "font-size: 15px; "
+        )
+
 
 def run_chempleter_gui():
     """

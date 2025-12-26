@@ -256,8 +256,10 @@ def _get_default_data(model,stoi_file,itos_file):
     )
 
     if stoi_file is None:
+        logging.info("Using default stoi file")
         stoi_file = default_stoi_file
     if itos_file is None:
+        logging.info("Using default itos file")
         itos_file = default_itos_file
 
     with open(stoi_file) as f:
@@ -266,6 +268,7 @@ def _get_default_data(model,stoi_file,itos_file):
         itos = json.load(f)
 
     if model is None:
+        logging.info("Using default model checkpoint")
         model = ChempleterModel(vocab_size=len(stoi))
         checkpoint = torch.load(default_checkpoint_file, map_location=device, weights_only=True)
         model.load_state_dict(checkpoint["model_state_dict"])
