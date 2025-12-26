@@ -16,7 +16,7 @@ device = (
 )
 
 
-def handle_prompt(smiles, selfies, stoi, alter_prompt):
+def handle_prompt(smiles, selfies, stoi=None, alter_prompt=False):
     """
     This function handles the smiles input by the user.
     Note that the selfies can be directly given, in that case, it will just add the "[START]" token.
@@ -31,6 +31,11 @@ def handle_prompt(smiles, selfies, stoi, alter_prompt):
     :param alter_prompt: Flag for prompt modification during input and generation
     :type alter_prompt: bool
     """
+    if stoi is None:
+        stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
+        with open(stoi_file) as f:
+            stoi = json.load(f)
+
     if selfies is not None:
         logging.info(f"Input SELFIES: {smiles}")
         for token in selfies:
@@ -174,7 +179,10 @@ def output_molecule(generated_ids, itos):
     )
     logging.info(f"Generated SELFIE: {generated_selfies}")
     generated_smiles = sf.decoder(generated_selfies)
-    logging.info(f"Generated SMILES: {generated_smiles}")
+    logging.info(f"Generated SMILES from decoding: {generated_smiles}")
+    ignored_token_proportion = (len(generated_selfies)-len(sf.encoder(generated_smiles)))/len(generated_selfies)
+    logging.info(f"Proportion of generated tokens ignored by SELFIES decoding : {ignored_token_proportion}")
+
 
     return generated_smiles, generated_selfies
 
@@ -240,6 +248,29 @@ def generation_loop(
 
     return generated_ids
 
+def _get_default_data(model,stoi_file,itos_file):
+    default_stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
+    default_itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
+    default_checkpoint_file = Path(
+        resources.files("chempleter.data").joinpath("model.pt")
+    )
+
+    if stoi_file is None:
+        stoi_file = default_stoi_file
+    if itos_file is None:
+        itos_file = default_itos_file
+
+    with open(stoi_file) as f:
+        stoi = json.load(f)
+    with open(itos_file) as f:
+        itos = json.load(f)
+
+    if model is None:
+        model = ChempleterModel(vocab_size=len(stoi))
+        checkpoint = torch.load(default_checkpoint_file, map_location=device, weights_only=True)
+        model.load_state_dict(checkpoint["model_state_dict"])
+
+    return stoi, itos, model
 
 def extend(
     model=None,
@@ -289,36 +320,21 @@ def extend(
     :raises ValueError: If the generated molecule is invalid.
     """
 
-    default_stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
-    default_itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
-    default_checkpoint_file = Path(
-        resources.files("chempleter.data").joinpath("model.pt")
-    )
+    # get default data if model, stoi or itos is not given
+    stoi, itos, model = _get_default_data(model,stoi_file,itos_file)
 
-    if stoi_file is None:
-        stoi_file = default_stoi_file
-    if itos_file is None:
-        itos_file = default_itos_file
-
-    with open(stoi_file) as f:
-        stoi = json.load(f)
-    with open(itos_file) as f:
-        itos = json.load(f)
-
-    if model is None:
-        model = ChempleterModel(vocab_size=len(stoi))
-        checkpoint = torch.load(default_checkpoint_file, map_location=device, weights_only=True)
-        model.load_state_dict(checkpoint["model_state_dict"])
-
+    # put model in evaluation mode
     model.to(device)
-    model.eval()  # put model in evaluation mode
+    model.eval()  
 
+    # check prompt
     prompt = handle_prompt(smiles, selfies, stoi, alter_prompt)
 
+    # check len
     min_len, max_len = handle_len(prompt, min_len, max_len)
 
+    # generate
     generated_smiles = prompt
-
     generated_ids = generation_loop(
         model, prompt, stoi, min_len, max_len, next_atom_criteria, temperature, k
     )
@@ -350,5 +366,6 @@ def extend(
     m = Chem.MolFromSmiles(generated_smiles)
     if m is None:
         raise ValueError("Invalid molecule")
+
 
     return m, generated_smiles, generated_selfies
