@@ -72,8 +72,8 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
 * Options:
-    * Temperature : Increasing the temperautre would result in more unusual molecules, while lowere values would generate more common structures.
-    * Sampling : Most probable’ selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. ‘Random’ generates a new molecule each time, while still including the input structure.
+    * Temperature : Increasing the temperature would result in more unusual molecules, while lower values would generate more common structures.
+    * Sampling : `Most probable` selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. `Random` generates a new molecule each time, while still including the input structure.
 
 
 #### As a python library
