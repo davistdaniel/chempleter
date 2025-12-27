@@ -1,6 +1,6 @@
 [project]
 name = "chempleter"
-version = "0.1.0b2"
+version = "0.1.0b3"
 description = "A lightweight generative model that extends SMILES fragments into syntactically valid molecules"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -78,7 +78,7 @@ package-data = {"chempleter" = ["data/*"]}
 dev = [
     "ipykernel>=7.1.0",
     "jupyter>=1.1.1",
-    "marimo>=0.18.4",
+    "matplotlib>=3.10.8",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.10",
