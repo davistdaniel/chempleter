@@ -5,7 +5,9 @@ import torch
 from chempleter.processor import generate_input_data, _selfies_encoder
 from chempleter.model import ChempleterModel
 from chempleter.dataset import ChempleterDataset, collate_fn
+from chempleter.descriptors import calculate_descriptors
 from chempleter.inference import handle_prompt, handle_len, handle_sampling, output_molecule, extend, _get_default_data
+from rdkit import Chem
 
 @pytest.fixture
 def mock_stoi():
@@ -275,3 +277,20 @@ class TestChempleterInference():
         assert type(stoi) is dict
         assert type(itos) is list
         assert type(model) is ChempleterModel
+
+class TestChempleterDescriptors():
+    def test_calculate_descriptors(self):
+        exp_dict = {'MW': 78.11,
+                    'LogP': 1.69,
+                    'SA_Score': 1.0,
+                    'QED': 0.443,
+                    'Fsp3': 0.0,
+                    'RotatableBonds': 0,
+                    'RingCount': 1,
+                    'TPSA': 0.0,
+                    'RadicalElectrons': 0}
+        
+        m = Chem.MolFromSmiles("c1ccccc1")
+        test_dict = calculate_descriptors(m)
+
+        assert exp_dict == test_dict

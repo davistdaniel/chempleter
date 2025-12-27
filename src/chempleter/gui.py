@@ -5,6 +5,7 @@ import torch
 from nicegui import ui
 from chempleter.inference import handle_prompt, extend
 from chempleter.model import ChempleterModel
+from chempleter.descriptors import calculate_descriptors
 from pathlib import Path
 from rdkit.Chem import Draw
 from rdkit.Chem import MolFromSmiles
@@ -121,15 +122,26 @@ def build_chempleter_ui():
         img_base64 = base64.b64encode(buffer.getvalue()).decode()
         molecule_image.set_source(f"data:image/png;base64,{img_base64}")
 
+        calculated_descriptors = calculate_descriptors(generated_molecule)
+        mw_chip.set_text(f"MW: {calculated_descriptors["MW"]}")
+        logp_chip.set_text(f"LogP: {calculated_descriptors["LogP"]}")
+        SA_score_chip.set_text(f"SA score: {calculated_descriptors["SA_Score"]}")
+        qed_chip.set_text(f"QED: {calculated_descriptors["QED"]}")
+        fsp3_chip.set_text(f"Fsp3: {calculated_descriptors["Fsp3"]}")
+        #tpsa_chip.set_text(f"TPSA: {calculated_descriptors["TPSA"]}")
+
         # after image generation
         smiles_input.enable()
         generate_button.set_text("Generate")
+
+
 
     logo_path = Path(resources.files("chempleter.data").joinpath("chempleter_logo.png"))
     ui.page_title("Chempleter")
     with ui.column().classes("w-full min-h-screen items-center overflow-auto py-8"):
         with ui.row(wrap=False).classes("w-128 justify-center"):
-            ui.image(logo_path).classes("w-64")
+            with ui.link(target='https://github.com/davistdaniel/chempleter'):
+                ui.image(logo_path).classes("w-64")
 
         with ui.card().tight():
             with ui.row(wrap=False).classes("w-128 justify-center"):
@@ -166,10 +178,18 @@ def build_chempleter_ui():
         with ui.row().classes("w-128 justify-center"):
             generate_button = ui.button("Generate", on_click=show_generated_molecule)
 
+        with ui.row():
+            mw_chip = ui.chip("MW",color='blue-3').tooltip("Molecular weight including hydrogens")
+            logp_chip = ui.chip("LogP",color='green-3').tooltip("Octanol-Water Partition Coeffecient")
+            SA_score_chip = ui.chip("SA score",color='orange-3').tooltip("Synthetic Accessibility score ranging from 1 (easy) to 10 (difficult)")
+            qed_chip = ui.chip("QED",color='grey-3').tooltip("Quantitative Estimate of Drug-likeness ranging from 0 to 1.")
+            fsp3_chip = ui.chip("Fsp3",color='pink-3').tooltip("Fraction of sp3 Hybridized Carbons")
+            #tpsa_chip = ui.chip("TPSA",color='violet-3').tooltip("Topological polar surface area")
+            
         with ui.card(align_items="center").tight().classes("w- 256 justify-center"):
-            molecule_image = ui.image().style("width: 300px")
             with ui.card_section():
-                generated_smiles_label = ui.label("")
+                generated_smiles_label = ui.label("").style("font-weight: normal; color: black; font-size: 12px;")
+            molecule_image = ui.image().style("width: 300px")
 
     with (
         ui.footer()
