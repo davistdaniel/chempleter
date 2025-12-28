@@ -289,6 +289,7 @@ def extend(
     next_atom_criteria="top_k_temperature",
     device=device,
     alter_prompt=False,
+    randomise_prompt=True
 ):
     """
     Extend a molecule given a substructure.
@@ -324,6 +325,12 @@ def extend(
     :raises ValueError: If the generated molecule is invalid.
     """
 
+    def _generate_from(prompt):
+        generated_ids = generation_loop(
+        model, prompt, stoi, min_len, max_len, next_atom_criteria, temperature, k
+    )
+        return generated_ids
+
     # get default data if model, stoi or itos is not given
     stoi, itos, model = _get_default_data(model, stoi_file, itos_file)
 
@@ -339,32 +346,37 @@ def extend(
 
     # generate
     generated_smiles = prompt
-    generated_ids = generation_loop(
-        model, prompt, stoi, min_len, max_len, next_atom_criteria, temperature, k
-    )
+    generated_ids = _generate_from(prompt=prompt)
     generated_smiles, generated_selfies = output_molecule(generated_ids, itos)
 
+    max_retries=3
     retry_n = 0
-    while generated_smiles == smiles and len(prompt) > 0:
+
+    while generated_smiles == smiles and len(prompt) > 0 and retry_n<=max_retries:
         if alter_prompt:
             prompt = prompt[:-1]
-            retry_n += 1
             logging.info(f"Retry {retry_n} with altered prompt : {prompt}")
-            generated_ids = generation_loop(
-                model,
-                prompt,
-                stoi,
-                min_len,
-                max_len,
-                next_atom_criteria,
-                temperature,
-                k,
-            )
+            generated_ids = _generate_from(prompt=prompt)
             generated_smiles, generated_selfies = output_molecule(generated_ids, itos)
+            retry_n += 1
+        elif randomise_prompt:
+            try:
+                temp_mol = Chem.MolFromSmiles(smiles)
+                logging.info("Same molecule as input, trying to randomise input smiles.")
+                prompt = handle_prompt(Chem.MolToSmiles(temp_mol,canonical=False,doRandom=True), selfies, stoi, alter_prompt)
+                logging.info(f"Retry {retry_n} with randomised prompt : {prompt}")
+                generated_ids = _generate_from(prompt=prompt)
+                generated_smiles, generated_selfies = output_molecule(generated_ids, itos)
+                retry_n += 1
+            except Exception as e:
+                logging.error(
+                    f"Randomisation failed : {e}"
+                )
+                break
         else:
             logging.warning(
-                "Same molecule as prompt. This molecule cannot be extended. Try again with a different prompt."
-            )
+            "Same molecule as prompt. This molecule cannot be extended. Try again with a different prompt."
+        )
             break
 
     m = Chem.MolFromSmiles(generated_smiles)
@@ -386,10 +398,10 @@ def evolve(
     next_atom_criteria="temperature",
     device=device,
     alter_prompt=False,
-    n_evolve=5,
+    n_evolve=4,
 ):
     if smiles == "":
-        _,smiles,_ = extend(smiles=smiles,max_len=5)
+        _,smiles,_ = extend(smiles=smiles,max_len=max_len)
     generated_mols_list = [Chem.MolFromSmiles(smiles)] + [None] * n_evolve
     generated_smiles_list = [smiles]+ [None] * n_evolve
     generated_selfies_list = [sf.encoder(smiles)] + [None] * n_evolve
@@ -413,6 +425,7 @@ def evolve(
             next_atom_criteria=next_atom_criteria,
             device=device,
             alter_prompt=alter_prompt,
+            randomise_prompt=False
         )
         if current_smiles == generated_smiles_list[idx]:
             logging.warning(
