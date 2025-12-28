@@ -372,3 +372,56 @@ def extend(
         raise ValueError("Invalid molecule")
 
     return m, generated_smiles, generated_selfies
+
+def evolve(
+    model=None,
+    stoi_file=None,
+    itos_file=None,
+    selfies=None,
+    smiles="",
+    min_len=None,
+    max_len=5,
+    temperature=1,
+    k=10,
+    next_atom_criteria="temperature",
+    device=device,
+    alter_prompt=False,
+    n_evolve=5,
+):
+    if smiles == "":
+        _,smiles,_ = extend(smiles=smiles,max_len=5)
+    generated_mols_list = [Chem.MolFromSmiles(smiles)] + [None] * n_evolve
+    generated_smiles_list = [smiles]+ [None] * n_evolve
+    generated_selfies_list = [sf.encoder(smiles)] + [None] * n_evolve
+    current_smiles = smiles
+    current_max_len = len(smiles)
+    for idx in range(1,n_evolve+1):
+        (
+            generated_mols_list[idx],
+            generated_smiles_list[idx],
+            generated_selfies_list[idx],
+        ) = extend(
+            model=model,
+            stoi_file=stoi_file,
+            itos_file=itos_file,
+            selfies=selfies,
+            smiles=current_smiles,
+            min_len=min_len,
+            max_len=current_max_len,
+            temperature=temperature,
+            k=k,
+            next_atom_criteria=next_atom_criteria,
+            device=device,
+            alter_prompt=alter_prompt,
+        )
+        if current_smiles == generated_smiles_list[idx]:
+            logging.warning(
+                f"Same molecule detected, early stop at evolutions step : {idx}"
+            )
+            break
+        current_smiles = generated_smiles_list[idx]
+        current_max_len = len(generated_smiles_list[idx])
+    
+    return generated_mols_list[:idx],generated_selfies_list[:idx],generated_smiles_list[:idx]
+    
+            
