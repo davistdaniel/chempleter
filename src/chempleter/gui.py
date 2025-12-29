@@ -3,12 +3,13 @@ import base64
 import json
 import torch
 from nicegui import ui
-from chempleter.inference import handle_prompt, extend
+from chempleter.inference import handle_prompt, extend, evolve
 from chempleter.model import ChempleterModel
 from chempleter.descriptors import calculate_descriptors
 from pathlib import Path
 from rdkit.Chem import Draw
-from rdkit.Chem import MolFromSmiles
+from rdkit.Chem import MolFromSmiles, rdFMCS
+from rdkit import Chem
 from importlib import resources
 from chempleter import __version__
 
@@ -53,42 +54,7 @@ def build_chempleter_ui():
             print(e)
             return False, ""
 
-    def show_generated_molecule():
-        if _validate_smiles(smiles=smiles_input.value)[0] is False:
-            ui.notify("Error parsing input SMILES", type="negative")
-            return
-
-        smiles_input.disable()
-        generate_button.set_text("Generating...")
-
-        # set parameters from gui
-        length = length_slider.value
-        max_len = int(length * 100)
-        min_len = int((length / 2) * 100)
-        next_atom_criteria = (
-            "greedy" if sampling_radio.value == "Most probable" else "top_k_temperature"
-        )
-
-        # generate
-        generated_molecule, generated_smiles, _ = extend(
-            model=model,
-            stoi_file=default_stoi_file,
-            itos_file=default_itos_file,
-            smiles=smiles_input.value,
-            min_len=min_len,
-            max_len=max_len,
-            temperature=temperature_input.value,
-            alter_prompt=alter_prompt_checkbox.value,
-            next_atom_criteria=next_atom_criteria,
-        )
-
-        # check if same
-        if generated_smiles == smiles_input.value:
-            if alter_prompt_checkbox.value is False:
-                ui.notify(
-                    "Same molecule as input. Try allowing prompt modification.",
-                    type="negative",
-                )
+    def _draw_if_extend(generated_molecule):
 
         # try highlighting input molecule
         input_molecule_structure = MolFromSmiles(smiles_input.value)
@@ -113,16 +79,128 @@ def build_chempleter_ui():
 
         else:
             img = Draw.MolToImage(generated_molecule, size=(300, 300))
+        
+        return img
+
+    def _draw_if_evolve(generated_molecule):
+
+        m_gen_list = generated_molecule
+
+        highlight_atoms = []
+        highlight_bonds = []
+
+        for i, mol in enumerate(m_gen_list):
+            if i == 0:
+                highlight_atoms.append([])
+                highlight_bonds.append([])
+                continue
+
+            prev = m_gen_list[i - 1]
+
+            mcs = rdFMCS.FindMCS(
+                [prev, mol],
+                ringMatchesRingOnly=True,
+                completeRingsOnly=True
+            )
+
+            if mcs.smartsString:
+                mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
+                match = mol.GetSubstructMatch(mcs_mol)
+
+                common_atoms = set(match)
+                common_bonds = set(
+                    mol.GetBondBetweenAtoms(match[b.GetBeginAtomIdx()],
+                                            match[b.GetEndAtomIdx()]).GetIdx()
+                    for b in mcs_mol.GetBonds()
+                )
+
+                new_atoms = [
+                    a.GetIdx() for a in mol.GetAtoms()
+                    if a.GetIdx() not in common_atoms
+                ]
+
+                new_bonds = [
+                    b.GetIdx() for b in mol.GetBonds()
+                    if b.GetIdx() not in common_bonds
+                ]
+
+                highlight_atoms.append(new_atoms)
+                highlight_bonds.append(new_bonds)
+            else:
+                highlight_atoms.append([])
+                highlight_bonds.append([])
+
+        img = Draw.MolsToGridImage(
+            m_gen_list,
+            molsPerRow=min(len(m_gen_list),4),
+            subImgSize=(300, 300),
+            highlightAtomLists=highlight_atoms,
+            highlightBondLists=highlight_bonds
+        )
+
+        return img
+
+    def show_generated_molecule():
+        if _validate_smiles(smiles=smiles_input.value)[0] is False:
+            ui.notify("Error parsing input SMILES", type="negative")
+            return
+
+        smiles_input.disable()
+        generate_button.set_enabled(False)
+
+        # set parameters from gui
+        length = length_slider.value
+        max_len = int(length * 100)
+        min_len = int((length / 2) * 100)
+        next_atom_criteria = (
+            "greedy" if sampling_radio.value == "Most probable" else "top_k_temperature"
+        )
+
+        gen_func = extend if generation_type_radio.value=="Extend" else evolve
+        # generate
+        generated_molecule, generated_smiles, _ = gen_func(
+            model=model,
+            stoi_file=default_stoi_file,
+            itos_file=default_itos_file,
+            smiles=smiles_input.value,
+            min_len=min_len,
+            max_len=max_len,
+            temperature=temperature_input.value,
+            alter_prompt=alter_prompt_checkbox.value,
+            next_atom_criteria=next_atom_criteria,
+        )
+
+        # check if same
+        if isinstance(generated_smiles,list):
+            if len(generated_smiles) == 1:
+                ui.notify(
+                    "Same molecule as input. Try increasing temperature.",
+                    type="warning",
+                )
+        else:
+            if generated_smiles == smiles_input.value:
+                if alter_prompt_checkbox.value is False:
+                    ui.notify(
+                        "Same molecule as input. Try allowing prompt modification.",
+                        type="warning",
+                    )
+                    
+        if generation_type_radio.value=="Extend":
+            img = _draw_if_extend(generated_molecule)
+            molecule_image.style("width: 300px")
+        else:
+            img = _draw_if_evolve(generated_molecule)
+            molecule_image.style(f"width: {180*len(generated_smiles)}px")
 
         # generated image
-        generated_smiles_label.set_text(generated_smiles)
+        generated_smiles_label.set_text(" --> ".join(generated_smiles) if isinstance(generated_smiles,list) else generated_smiles)
 
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
         img_base64 = base64.b64encode(buffer.getvalue()).decode()
         molecule_image.set_source(f"data:image/png;base64,{img_base64}")
-
-        calculated_descriptors = calculate_descriptors(generated_molecule)
+        molecule_image.set_visibility(True)
+        calculated_descriptors = calculate_descriptors(generated_molecule[-1] if isinstance(generated_molecule,list) else generated_molecule)
         mw_chip.set_text(f"MW: {calculated_descriptors["MW"]}")
         logp_chip.set_text(f"LogP: {calculated_descriptors["LogP"]}")
         SA_score_chip.set_text(f"SA score: {calculated_descriptors["SA_Score"]}")
@@ -132,8 +210,7 @@ def build_chempleter_ui():
 
         # after image generation
         smiles_input.enable()
-        generate_button.set_text("Generate")
-
+        generate_button.set_enabled(True)
 
 
     logo_path = Path(resources.files("chempleter.data").joinpath("chempleter_logo.png"))
@@ -165,6 +242,11 @@ def build_chempleter_ui():
                 sampling_radio = ui.radio(
                     ["Most probable", "Random"], value="Random"
                 ).props("inline")
+            with ui.row(wrap=False):
+                ui.chip("Generation type: ", color="white")
+                generation_type_radio = ui.radio(
+                    ["Extend", "Evolve"], value="Extend"
+                ).props("inline")
             with ui.row(wrap=False).classes("w-128"):
                 ui.chip("Molecule size: ", color="white")
                 ui.chip("Smaller")
@@ -185,11 +267,11 @@ def build_chempleter_ui():
             qed_chip = ui.chip("QED",color='grey-3').tooltip("Quantitative Estimate of Drug-likeness ranging from 0 to 1.")
             fsp3_chip = ui.chip("Fsp3",color='pink-3').tooltip("Fraction of sp3 Hybridized Carbons")
             #tpsa_chip = ui.chip("TPSA",color='violet-3').tooltip("Topological polar surface area")
-            
-        with ui.card(align_items="center").tight().classes("w- 256 justify-center"):
-            with ui.card_section():
-                generated_smiles_label = ui.label("").style("font-weight: normal; color: black; font-size: 12px;")
-            molecule_image = ui.image().style("width: 300px")
+        with ui.row().classes("w-128 justify-center"):
+            generated_smiles_label = ui.label("").style("font-weight: normal; color: black; font-size: 10px;")
+        with ui.card(align_items="center").tight().classes("w- 256 justify-center"):                
+            molecule_image = ui.image()
+            molecule_image.set_visibility(False)
 
     with (
         ui.footer()
