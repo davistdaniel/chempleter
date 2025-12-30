@@ -429,7 +429,7 @@ def evolve(
         )
         if current_smiles == generated_smiles_list[idx]:
             logging.warning(
-                f"Same molecule detected, early stop at evolutions step : {idx}"
+                f"Same molecule detected, early stop at evolution step : {idx}"
             )
             break
         current_smiles = generated_smiles_list[idx]
