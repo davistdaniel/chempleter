@@ -1,7 +1,9 @@
 import json
 import torch
+import logging
 import selfies as sf
 import pandas as pd
+from rdkit import Chem
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
@@ -35,6 +37,53 @@ class ChempleterDataset(Dataset):
         integer_molecule = [
             self.selfies_to_integer[symbol] for symbol in symbols_molecule
         ]
+        return torch.tensor(integer_molecule, dtype=torch.long)
+    
+class ChempleterDatasetRandomisedSmiles(Dataset):
+    """
+    PyTorch Dataset for SELFIES molecular representations.
+
+    :param smiles_file: Path to CSV file containing SMILES strings in a "smiles" column.
+    :type smiles_file: str
+    :param stoi_file: Path to JSON file mapping SELFIES symbols to integer tokens.
+    :type stoi_file: str
+    :returns: Integer tensor representation of tokenized molecule with dtype=torch.long.
+    :rtype: torch.Tensor
+    """
+
+    def __init__(self, smiles_file, stoi_file):
+        super().__init__()
+        smiles_dataframe = pd.read_csv(smiles_file)
+        self.data = smiles_dataframe["smiles"].to_list()
+        with open(stoi_file) as f:
+            self.selfies_to_integer = json.load(f)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        molecule_in_smiles = self.data[index]
+
+        # try randomisation
+        molecule = Chem.MolFromSmiles(molecule_in_smiles)
+        if molecule is not None:
+            try:
+                molecule_in_selfies = sf.encoder(Chem.MolToSmiles(molecule_in_smiles,canonical=False,doRandom=True))
+            except Exception as e:
+                logging.error(f"SELFIES encoding error for randomised SMILES: {e}")
+        else:
+            molecule_in_selfies = sf.encoder(molecule_in_smiles)
+
+        symbols_molecule = ["[START]"] + list(sf.split_selfies(molecule_in_selfies)) + ["[END]"]
+        integer_molecule = []
+
+        # check if all symbols exist in stoi
+        for symbol in symbols_molecule:
+            if symbol not in self.selfies_to_integer:
+                raise RuntimeError(f"Molecule symbol not found in stoi. Add {symbol} in stoi with correct integer mapping.")
+            else:
+                integer_molecule.append(self.selfies_to_integer[symbol])
+
         return torch.tensor(integer_molecule, dtype=torch.long)
 
 
