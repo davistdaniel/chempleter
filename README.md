@@ -75,15 +75,13 @@ You can install chempleter using any one of the following ways:
     An example with `Extend` for Benzene(c1ccccc1):
 
     <div align="left">
-    <img src="[screenshots/extend_example.png](https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/screenshots/extend_example.png)" alt="Extend_example" width="200">
+    <img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/screenshots/extend_example.png" alt="Extend_example" width="200">
     </div>
-
-
 
     An example with `Evolve` for Benzene(c1ccccc1):
 
     <div align="left">
-    <img src="[screenshots/evolve_example.png](https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/screenshots/evolve_example.png)" alt="Evolve_example" width="800">
+    <img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/screenshots/evolve_example.png" alt="Evolve_example" width="800">
     </div>
 
 
