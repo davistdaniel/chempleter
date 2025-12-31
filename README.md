@@ -75,7 +75,7 @@ You can install chempleter using any one of the following ways:
     An example with `Extend` for Benzene(c1ccccc1):
 
     <div align="left">
-    <img src="image.png" alt="Demo Gif" width="200">
+    <img src="screenshots/extend_example.png" alt="Extend_example" width="200">
     </div>
 
 
@@ -83,7 +83,7 @@ You can install chempleter using any one of the following ways:
     An example with `Evolve` for Benzene(c1ccccc1):
 
     <div align="left">
-    <img src="image-1.png" alt="Demo Gif" width="700">
+    <img src="screenshots/evolve_example.png" alt="Evolve_example" width="800">
     </div>
 
 
