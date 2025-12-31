@@ -39,7 +39,7 @@ class ChempleterDataset(Dataset):
         ]
         return torch.tensor(integer_molecule, dtype=torch.long)
     
-class ChempleterDatasetRandomisedSmiles(Dataset):
+class ChempleterRandomisedSmilesDataset(Dataset):
     """
     PyTorch Dataset for SELFIES molecular representations.
 
