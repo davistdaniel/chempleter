@@ -53,8 +53,6 @@ You can install chempleter using any one of the following ways:
         Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
 
 
-    
-
 ### Usage
 
 #### GUI
@@ -68,9 +66,26 @@ You can install chempleter using any one of the following ways:
 
 
 * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
+
 * Options:
     * Temperature : Increasing the temperature would result in more unusual molecules, while lower values would generate more common structures.
     * Sampling : `Most probable` selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. `Random` generates a new molecule each time, while still including the input structure.
+    * Generation type : `Extend` will ouput a generated molecule which is extended based on the input fragment, while `Evolve` will ouput multiple generated molecules each based on their previous molecular fragment.
+
+    An example with `Extend` for Benzene(c1ccccc1):
+
+    <div align="left">
+    <img src="image.png" alt="Demo Gif" width="200">
+    </div>
+
+
+
+    An example with `Evolve` for Benzene(c1ccccc1):
+
+    <div align="left">
+    <img src="image-1.png" alt="Demo Gif" width="700">
+    </div>
+
 
 
 #### As a python library
