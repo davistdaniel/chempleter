@@ -1,6 +1,6 @@
 # chempleter
 
-__version__ = "0.1.0b3"
+__version__ = "0.1.0b4"
 
 from pathlib import Path
 import logging
@@ -14,7 +14,7 @@ logging.basicConfig(
 
 def start_experiment(experiment_name, working_dir=None):
     """
-    Docstring for start_experiment
+    This function makes a folder to save processed files in.
 
     :param experiment_name: Description
     :param working_dir: Description
