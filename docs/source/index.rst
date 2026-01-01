@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Chempleter's documentation
+Welcome to Chempleter
 ===========================================
 
 Chempleter is a lightweight generative model which utilises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
