@@ -1,15 +1,12 @@
 # Chempleter
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/chempleter_logo.png" alt="Demo Gif" width="200">
+</div>
+
 Chempleter is lightweight generative model which utlises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
 It accepts SMILES notation as input and enforces chemical syntax validity using SELFIES for the generated molecules. 
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/main/screenshots/demo.gif" alt="Demo Gif" width="400">
-</div>
-
-
-* Why was Chempleter made?
-    * Mainly for me to get into Pytorch. Also, I find it fun to generate random, possibly unsynthesisable molecules from a starting structure.
 
 * What can Chempleter do?
     
@@ -19,18 +16,25 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/chempleter_in_action.gif" alt="Demo Gif" width="400">
+</div>
+
 
 ## Prerequisites
 * Python ">=3.13"
-* See [pyproject.toml](pyproject.toml) for dependencies.
 * [uv](https://docs.astral.sh/uv/) (optional but recommended)
 
-## Get started
+## Getting started
 
-You can install or run chempleter using any one of the following ways by execuiting commands in a terminal:
+Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
+
+## Quick start
+
+You can find more information about installing Chempleter (also via pip) in [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
 
 
-- #### Run the GUI directly without installing using uv:
+- ### Run the GUI directly without installing using uv:
 
     * On windows:
 
@@ -39,83 +43,42 @@ You can install or run chempleter using any one of the following ways by execuit
         
         ``uvx --from chempleter chempleter-gui``
 
-- #### Install from PyPi
-
-    ``python -m pip install chempleter``
-
-    By default, the CPU version of pytorch will be installed. Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
-
-- #### Install using uv
+- ### Install using uv
 
     ``uv pip install chempleter``
 
-- #### Install using uv for development
+- ### Use the GUI
 
-    1. Clone this repo
+    * To start the Chempleter GUI after installing, execute in a terminal:
+        
+        ``uv run chempleter-gui``
 
-        ``git clone https://github.com/davistdaniel/chempleter.git``
+    * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
 
-    2. Inside the project directory, exceute in a terminal:
+    * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
-        ``uv sync``
-
-        By default, the CPU version of pytorch will be installed, in case of using GPU as accelerator and CUDA 12.8:
-
-        ``uv sync --extra gpu128``
-
-        Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
-
-
-### Usage
-
-#### GUI
-* To start the Chempleter GUI after installing, execute in a terminal:
+    <div align="center">
+    <h2> Or </h2>
+    </div>
     
-    ``chempleter-gui``
+ - ### Use as a python library
 
+    * To use Chempleter as a python library:
 
-* Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
+        ```python
+        from chempleter.inference import extend
+        generated_mol, generated_smiles, generated_selfies = extend(smiles="c1ccccc1")
+        print(generated_smiles)
+        >> C1=CC=CC=C1C2=CC=C(CN3C=NC4=CC=CC=C4C3=O)O2
+        ```
 
-* Options:
-    * Temperature : Increasing the temperature would result in more unusual molecules, while lower values would generate more common structures.
-    * Sampling : `Most probable` selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. `Random` generates a new molecule each time, while still including the input structure.
-    * Generation type : `Extend` will ouput a generated molecule which is extended based on the input fragment, while `Evolve` will ouput multiple generated molecules each based on their previous molecular fragment.
+        To draw the generated molecule :
 
-    An example with `Extend` for Benzene(c1ccccc1):
-
-    <div align="left">
-    <img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/screenshots/extend_example.png" alt="Extend_example" width="200">
-    </div>
-
-    An example with `Evolve` for Benzene(c1ccccc1):
-
-    <div align="left">
-    <img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/screenshots/evolve_example.png" alt="Evolve_example" width="800">
-    </div>
-
-
-
-#### As a python library
-
-* To use Chempleter as a python library:
-
-    ```python
-    from chempleter.inference import extend
-    generated_mol, generated_smiles, generated_selfies = extend(smiles="c1ccccc1")
-    print(generated_smiles)
-    >> C1=CC=CC=C1C2=CC=C(CN3C=NC4=CC=CC=C4C3=O)O2
-    ```
-
-    To draw the generated molecule :
-
-    ```python
-    from rdkit import Chem
-    Chem.Draw.MolToImage(generated_mol)
-    ```
-* For details on available parameters, refer to the ``extend`` (``chempleter.inference`` module) function’s docstring.
-
-### Model validation history
-
+        ```python
+        from rdkit import Chem
+        Chem.Draw.MolToImage(generated_mol)
+        ```
+    * For details on available paramenters and inference functions, see [generating molecules](https://davistdaniel.github.io/chempleter/usage.html#generating-molecules).
 
 
 ### Project structure
@@ -132,19 +95,11 @@ You can install or run chempleter using any one of the following ways by execuit
 
 [MIT](https://github.com/davistdaniel/chempleter/tree/main?tab=MIT-1-ov-file#readme) License
 
-Copyright (c) 2025 Davis Thomas Daniel
+Copyright (c) 2025-2026 Davis Thomas Daniel
 
 # Contributing
 
 Any contribution, improvements, feature ideas or bug fixes are always welcome.
-
-## Random Notes
-
-* Training data
-    * QM9 and ZINC datasets. 379997 molecules were used for training in total.
-* Running wihout a GPU
-    * Chempleter uses a 2-layer GRU, it should run comfortably on a CPU.
-
 
 
 
