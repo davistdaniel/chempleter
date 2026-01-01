@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Getting started &#8212; Chempleter 0.1.0b4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9550617d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="_static/documentation_options.js?v=bcec09ca"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="Welcome to Chempleter’s documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
+<section id="setting-up-chempleter-on-your-device">
+<h2>Setting up chempleter on your device<a class="headerlink" href="#setting-up-chempleter-on-your-device" title="Link to this heading">¶</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Install on your device</label><div class="sd-tab-content docutils">
+<p>You can install Chempleter on your device using <a class="reference external" href="https://docs.astral.sh/uv/">uv</a> or pip. See <a class="reference internal" href="installation.html"><span class="doc">installation instructions</span></a>.</p>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Run Chempleter GUI without installing</label><div class="sd-tab-content docutils">
+<p>You can run Chempleter’s GUI without installing via <a class="reference external" href="https://docs.astral.sh/uv/">uv</a>:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+On MacOS/Linux</label><div class="sd-tab-content docutils">
+<p><code class="docutils literal notranslate"><span class="pre">uvx</span> <span class="pre">--from</span> <span class="pre">chempleter</span> <span class="pre">chempleter-gui</span></code></p>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+On windows</label><div class="sd-tab-content docutils">
+<p><code class="docutils literal notranslate"><span class="pre">uvx</span> <span class="pre">--from</span> <span class="pre">chempleter</span> <span class="pre">chempleter-gui.exe</span></code></p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="generating-molecules">
+<h2>Generating molecules<a class="headerlink" href="#generating-molecules" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>Chempleter accepts a valid SMILES notation for a molecule/molecular fragment. If an initial input is not provided, chempleter generates a random molecule.</p></li>
+<li><p>There are two main inference functions:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">extend</span></code>:</p>
+<blockquote>
+<div><p>Description: Takes a starting molecular structure (SMILES or SELFIES) and uses the GRU model to
+append new atoms and functional groups until a complete molecule larger than the input molecule is formed.</p>
+<p>Behaviour: Includes a retry logic. If the model fails to add new atoms (i.e. returns the input), it can either “truncate” the prompt
+(<code class="docutils literal notranslate"><span class="pre">alter_prompt</span></code>, false by default) or randomize the input SMILES (<code class="docutils literal notranslate"><span class="pre">randomise_prompt</span></code>, true by default) to provide the model with a new prompt based on the input prompt.</p>
+<p>An example with <code class="docutils literal notranslate"><span class="pre">Extend</span></code> for Benzene(c1ccccc1):</p>
+<img alt="_images/extend_example.png" class="align-center" src="_images/extend_example.png" />
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evolve</span></code>:</p>
+<blockquote>
+<div><p>Description: A wrapper function that calls extend multiple times in a chain.
+It takes the output of one extension and uses it as the input for the next, effectively “evolving” a small fragment into
+a complex structure over several steps.</p>
+<p>Behaviour: Automates the growth process over a set number of steps (<code class="docutils literal notranslate"><span class="pre">n_evolve</span></code>). If the molecule stops growing at any step in the chain,
+the function halts to prevent redundant processing. Maintains a history of the evolution, returning a list of all intermediate molecules.
+It is best to start with a small fragment.</p>
+<p>An example with <code class="docutils literal notranslate"><span class="pre">Evolve</span></code> for Benzene(c1ccccc1):</p>
+<img alt="_images/evolve_example.png" class="align-center" src="_images/evolve_example.png" />
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<section id="use-the-gui">
+<h3>Use the GUI<a class="headerlink" href="#use-the-gui" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p>Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on <code class="docutils literal notranslate"><span class="pre">GENERATE</span></code> button to generate a molecule.</p></li>
+<li><p>GUI options:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Temperature</strong> : Increasing the temperature would result in more unusual molecules, while lower values would generate more common structures.</p></li>
+<li><p><strong>Sampling</strong> : Most probable selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. Random generates a new molecule each time, while still including the input structure.</p></li>
+<li><p><strong>Generation type</strong> : Extend will ouput a generated molecule which is extended based on the input fragment, while Evolve will ouput multiple generated molecules each based on their previous molecular fragment.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="use-as-a-python-library">
+<h3>Use as a Python library<a class="headerlink" href="#use-as-a-python-library" title="Link to this heading">¶</a></h3>
+<p>Chempleter can be used programmatically to extend or iteratively evolve molecules.</p>
+<ul>
+<li><p>To extend a molecule once, use <code class="docutils literal notranslate"><span class="pre">chempleter.inference.extend</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">chempleter.inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">extend</span>
+
+<span class="n">generated_mol</span><span class="p">,</span> <span class="n">generated_smiles</span><span class="p">,</span> <span class="n">generated_selfies</span> <span class="o">=</span> <span class="n">extend</span><span class="p">(</span>
+    <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;c1ccccc1&quot;</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">generated_smiles</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>To iteratively evolve a molecule, use <code class="docutils literal notranslate"><span class="pre">chempleter.inference.evolve</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">chempleter.inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">evolve</span>
+
+<span class="n">generated_mols</span><span class="p">,</span> <span class="n">generated_selfies</span><span class="p">,</span> <span class="n">generated_smiles</span> <span class="o">=</span> <span class="n">evolve</span><span class="p">(</span>
+    <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;c1ccccc1&quot;</span><span class="p">,</span>
+    <span class="n">n_evolve</span><span class="o">=</span><span class="mi">4</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Options</p>
+<blockquote>
+<div><p>Both <code class="docutils literal notranslate"><span class="pre">extend</span></code> and <code class="docutils literal notranslate"><span class="pre">evolve</span></code> accept several optional arguments to control
+generation behaviour:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: Preloaded Chempleter model. If omitted, a default trained model is used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stoi_file</span></code> / <code class="docutils literal notranslate"><span class="pre">itos_file</span></code>: Paths to token mapping files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">selfies</span></code>: Input SELFIES tokens (overrides <code class="docutils literal notranslate"><span class="pre">smiles</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smiles</span></code>: Input SMILES string to extend or evolve.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_len</span></code>: Minimum final sequence length.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_len</span></code>: Maximum number of generated tokens.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code>: Sampling temperature.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: Top-k sampling parameter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">next_atom_criteria</span></code>: Sampling strategy (<code class="docutils literal notranslate"><span class="pre">&quot;greedy&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;temperature&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;top_k_temperature&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">device</span></code>: Device to run inference on (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code> or CUDA device).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alter_prompt</span></code>: Allow prompt alteration if generation fails.</p></li>
+</ul>
+<p>Additional options for <code class="docutils literal notranslate"><span class="pre">evolve</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n_evolve</span></code>: Number of evolutionary extension steps.</p></li>
+</ul>
+<p>Both functions return RDKit molecule objects alongside the generated SMILES and SELFIES representations.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/chempleter_logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">Chempleter</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/davistdaniel/chempleter">Github</a></li>
+    
+    <li class="toctree-l1"><a href="https://pypi.org/project/chempleter/">PyPi</a></li>
+    
+</ul>
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Davis Thomas Daniel.
+      
+      |
+      <a href="_sources/usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

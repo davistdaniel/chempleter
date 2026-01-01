@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Welcome to Chempleter’s documentation &#8212; Chempleter 0.1.0b4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9550617d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="_static/documentation_options.js?v=bcec09ca"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="usage.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="welcome-to-chempleter-s-documentation">
+<h1>Welcome to Chempleter’s documentation<a class="headerlink" href="#welcome-to-chempleter-s-documentation" title="Link to this heading">¶</a></h1>
+<p>Chempleter is a lightweight generative model which utilises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
+It accepts <a class="reference external" href="https://en.wikipedia.org/wiki/Simplified_Molecular_Input_Line_Entry_System">SMILES</a> notation as input and enforces chemical syntax validity using <a class="reference external" href="https://selfies.readthedocs.io/en/latest/">SELFIES</a> for the generated molecules.
+The library also has an optional graphical user interface to interact with the model.</p>
+<a class="reference internal image-reference" href="_images/chempleter_in_action.gif"><img alt="_images/chempleter_in_action.gif" class="align-center" src="_images/chempleter_in_action.gif" style="width: 469.2px; height: 488.4px;" />
+</a>
+<section id="what-can-chempleter-do">
+<h2>What can chempleter do?<a class="headerlink" href="#what-can-chempleter-do" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Currently, Chempleter accepts an initial molecule/molecular fragment in SMILES format and generates a larger molecule with that intial structure included, while respecting chemical syntax. It also shows some interesting descriptors.</p></li>
+<li><p>It can be used to generate a wide range of structural analogs which the share same core structure (by changing the sampling temperature) or decorate a core scaffold iteratively (by increasing generated token lengths).</p></li>
+<li><p>In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more “goal-directed” predictions.</p></li>
+</ul>
+<p>To get started, see <a class="reference internal" href="usage.html"><span class="doc">getting started</span></a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/chempleter_logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">Chempleter</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/davistdaniel/chempleter">Github</a></li>
+    
+    <li class="toctree-l1"><a href="https://pypi.org/project/chempleter/">PyPi</a></li>
+    
+</ul>
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Davis Thomas Daniel.
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
