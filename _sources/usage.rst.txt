@@ -30,15 +30,15 @@ Generating molecules
 ----------------------------------------
 
 * Chempleter accepts a valid SMILES notation for a molecule/molecular fragment. If an initial input is not provided, chempleter generates a random molecule.
-* There are two main interence functions:
+* There are two main inference functions:
 
     * ``extend``:
 
         Description: Takes a starting molecular structure (SMILES or SELFIES) and uses the GRU model to 
         append new atoms and functional groups until a complete molecule larger than the input molecule is formed.
 
-        Behaviour: Includes a retry logic systes. If the model fails to add new atoms (i.e. returns the input), it can either "truncate" the prompt 
-        (``alter_prompt``, false by default) or generate a new randomized SMILES string (``randomise_prompt``, true by default) to provide the model with new prompt based on the input prompt.
+        Behaviour: Includes a retry logic. If the model fails to add new atoms (i.e. returns the input), it can either "truncate" the prompt 
+        (``alter_prompt``, false by default) or randomize the input SMILES (``randomise_prompt``, true by default) to provide the model with a new prompt based on the input prompt.
 
         An example with ``Extend`` for Benzene(c1ccccc1):
 
