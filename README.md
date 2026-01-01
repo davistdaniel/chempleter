@@ -4,6 +4,13 @@
 <img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/chempleter_logo.png" alt="Demo Gif" width="200">
 </div>
 
+![PyPI - Status](https://img.shields.io/pypi/status/chempleter) ![PyPI - Version](https://img.shields.io/pypi/v/chempleter) ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fdavistdaniel%2Fchempleter%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) ![PyPI - License](https://img.shields.io/pypi/l/chempleter) ![GitHub last commit](https://img.shields.io/github/last-commit/davistdaniel/chempleter)
+
+
+
+
+
+
 Chempleter is lightweight generative model which utlises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
 It accepts SMILES notation as input and enforces chemical syntax validity using SELFIES for the generated molecules. 
 
