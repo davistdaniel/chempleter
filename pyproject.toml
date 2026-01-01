@@ -82,7 +82,9 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.10",
-    "sphinx>=9.0.4",
+    "sphinx>=8.2.3",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.6.1",
     "tqdm>=4.67.1",
     "twine>=6.2.0",
 ]
