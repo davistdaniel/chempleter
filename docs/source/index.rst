@@ -1,0 +1,42 @@
+.. chempleter documentation master file, created by
+   sphinx-quickstart on Thu Jan  1 12:33:30 2026.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to Chempleter's documentation
+===========================================
+
+.. image::
+   images/chempleter_logo.png
+   :height: 200px
+   :width: 200 px
+   :align: center
+   :target: https://github.com/davistdaniel/chempleter
+
+
+Chempleter is a lightweight generative model which utilises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
+It accepts SMILES notation as input and enforces chemical syntax validity using SELFIES for the generated molecules. 
+The library also has an optional graphical user interface to interact with the model.
+
+.. image::
+   images/chempleter_in_action.gif
+   :align: center
+   :scale: 80 %
+
+
+What can chempleter do?
+----------------------------
+
+* Currently, Chempleter accepts an intial molecule/molecular fragment in SMILES format and generates a larger molecule with that intial structure included, while respecting chemical syntax. It also shows some interesting descriptors.
+* It can be used to generate a wide range of structural analogs which the share same core structure (by changing the sampling temperature) or decorate a core scaffold iteratively (by increasing generated token lengths).
+* In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
+
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   installation
+   getting_started
+
