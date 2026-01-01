@@ -34,7 +34,7 @@ Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 You can find more information about installing Chempleter (also via pip) in [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
 
 
-- ### Run the GUI directly without installing using uv:
+- ### Run the GUI directly without installing (via uv):
 
     * On windows:
 
