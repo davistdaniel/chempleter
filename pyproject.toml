@@ -1,8 +1,11 @@
 [project]
 name = "chempleter"
-version = "0.1.0b3"
+version = "0.1.0b4"
 description = "A lightweight generative model that extends SMILES fragments into syntactically valid molecules"
 readme = "README.md"
+authors = [
+    { name = "Davis Thomas Daniel", email = "davisthomasdaniel@gmail.com" }
+]
 requires-python = ">=3.12"
 dependencies = [
     "nicegui>=3.4.1",
@@ -14,7 +17,9 @@ dependencies = [
 ]
 
 classifiers = [
-    "License :: OSI Approved :: MIT License"
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Topic :: Scientific/Engineering :: Chemistry"
 ]
 license = "MIT"
 license-files = ["LICENSE"]
@@ -24,7 +29,7 @@ chempleter-gui = "chempleter.gui:run_chempleter_gui"
 
 [project.urls]
 Homepage = "https://github.com/davistdaniel/chempleter"
-Documentation = "https://github.com/davistdaniel/chempleter"
+Documentation = "https://davistdaniel.github.io/chempleter/"
 Repository = "https://github.com/davistdaniel/chempleter"
 "Bug Tracker" = "https://github.com/davistdaniel/chempleter/issues"
 
