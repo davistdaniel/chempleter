@@ -27,8 +27,17 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 ## Get started
 
+You can install or run chempleter using any one of the following ways by execuiting commands in a terminal:
 
-You can install chempleter using any one of the following ways:
+
+- #### Run the GUI directly without installing using uv:
+
+    * On windows:
+
+        ``uvx --from chempleter chempleter-gui.exe``
+    * On linux/MacOS:
+        
+        ``uvx --from chempleter chempleter-gui``
 
 - #### Install from PyPi
 
@@ -37,6 +46,10 @@ You can install chempleter using any one of the following ways:
     By default, the CPU version of pytorch will be installed. Alternatively, you can install a PyTorch version compatible with your CUDA version by following the [Pytorch documentation](https://pytorch.org/get-started/locally/).
 
 - #### Install using uv
+
+    ``uv pip install chempleter``
+
+- #### Install using uv for development
 
     1. Clone this repo
 
@@ -56,13 +69,9 @@ You can install chempleter using any one of the following ways:
 ### Usage
 
 #### GUI
-* To start the Chempleter GUI:
+* To start the Chempleter GUI after installing, execute in a terminal:
     
     ``chempleter-gui``
-
-    or 
-
-    ``uv run src/chempleter/gui.py``
 
 
 * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
@@ -105,15 +114,8 @@ You can install chempleter using any one of the following ways:
     ```
 * For details on available parameters, refer to the ``extend`` (``chempleter.inference`` module) function’s docstring.
 
-### Current model performance
+### Model validation history
 
-Performance metrics were evaluated across 500 independent generations using a model checkpoint trained for 80 epochs with a batch size of 64.
-
-| Metric     | Value | Description                                                                                                  |
-|------------|-------|--------------------------------------------------------------------------------------------------------------|
-| Validity   | 1.0   | Proportion of Generated SMILES which respect chemical syntax; tested using selfies decoder and RDkit parser. |
-| Uniqueness | 0.96  | Proportion of Generated SMILES which were unique                                                             |
-| Novelty    | 0.85  | Proportion of Generated SMILES which were not present in the training datatset                             |
 
 
 ### Project structure
