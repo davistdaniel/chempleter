@@ -24,6 +24,7 @@ Setting up chempleter on your device
 
                 ``uvx --from chempleter chempleter-gui.exe``
 
+.. _generating-molecules-label:
 
 Generating molecules
 ----------------------------------------
