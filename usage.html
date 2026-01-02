@@ -69,7 +69,7 @@ On windows</label><div class="sd-tab-content docutils">
 </div>
 </section>
 <section id="generating-molecules">
-<h2>Generating molecules<a class="headerlink" href="#generating-molecules" title="Link to this heading">¶</a></h2>
+<span id="generating-molecules-label"></span><h2>Generating molecules<a class="headerlink" href="#generating-molecules" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>Chempleter accepts a valid SMILES notation for a molecule/molecular fragment. If an initial input is not provided, chempleter generates a random molecule.</p></li>
 <li><p>There are two main inference functions:</p>
@@ -97,6 +97,14 @@ It is best to start with a small fragment.</p>
 <img alt="_images/evolve_example.png" class="align-center" src="_images/evolve_example.png" />
 </div></blockquote>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bridge</span></code>:</p>
+<blockquote>
+<div><p>Description: Takes two starting molecular fragments (in SMILES notation) and uses the GRU model to predict a bridge between them.</p>
+<p>Behaviour: Includes a retry logic. If the generated molecule is same as the input, it will randomise the first fragment.</p>
+<p>An example with <code class="docutils literal notranslate"><span class="pre">Bridge</span></code> for a Benzene(c1ccccc1) and Pyridine(c1ccncc1):</p>
+<img alt="_images/bridge_example.png" class="align-center" src="_images/bridge_example.png" />
+</div></blockquote>
+</li>
 </ul>
 </div></blockquote>
 </li>
@@ -110,7 +118,7 @@ It is best to start with a small fragment.</p>
 <div><ul class="simple">
 <li><p><strong>Temperature</strong> : Increasing the temperature would result in more unusual molecules, while lower values would generate more common structures.</p></li>
 <li><p><strong>Sampling</strong> : Most probable selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. Random generates a new molecule each time, while still including the input structure.</p></li>
-<li><p><strong>Generation type</strong> : Extend will ouput a generated molecule which is extended based on the input fragment, while Evolve will ouput multiple generated molecules each based on their previous molecular fragment.</p></li>
+<li><p><strong>Generation type</strong> : Extend will ouput a generated molecule which is extended based on the input fragment, while Evolve will ouput multiple generated molecules each based on their previous molecular fragment. Bridge will bridge two molecular fragments.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -141,6 +149,16 @@ It is best to start with a small fragment.</p>
 </pre></div>
 </div>
 </li>
+<li><p>To iteratively evolve a molecule, use <code class="docutils literal notranslate"><span class="pre">chempleter.inference.evolve</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">chempleter.inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">bridge</span>
+
+<span class="n">generated_mol</span><span class="p">,</span> <span class="n">generated_selfies</span><span class="p">,</span> <span class="n">generated_smiles</span> <span class="o">=</span> <span class="n">bridge</span><span class="p">(</span>
+    <span class="n">frag1_smiles</span><span class="o">=</span><span class="s2">&quot;c1ccccc1&quot;</span><span class="p">,</span><span class="n">frag2_smiles</span><span class="o">=</span><span class="s2">&quot;c1ccncc1&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">generated_smiles</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
 <li><p>Options</p>
 <blockquote>
 <div><p>Both <code class="docutils literal notranslate"><span class="pre">extend</span></code> and <code class="docutils literal notranslate"><span class="pre">evolve</span></code> accept several optional arguments to control
@@ -150,7 +168,7 @@ generation behaviour:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">stoi_file</span></code> / <code class="docutils literal notranslate"><span class="pre">itos_file</span></code>: Paths to token mapping files.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">selfies</span></code>: Input SELFIES tokens (overrides <code class="docutils literal notranslate"><span class="pre">smiles</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">smiles</span></code>: Input SMILES string to extend or evolve.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min_len</span></code>: Minimum final sequence length.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">selfies</span></code>: Minimum final sequence length.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_len</span></code>: Maximum number of generated tokens.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code>: Sampling temperature.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: Top-k sampling parameter.</p></li>
@@ -162,6 +180,7 @@ generation behaviour:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">n_evolve</span></code>: Number of evolutionary extension steps.</p></li>
 </ul>
+<p><code class="docutils literal notranslate"><span class="pre">bridge</span></code> accepts all parameters of <code class="docutils literal notranslate"><span class="pre">extend</span></code> except <code class="docutils literal notranslate"><span class="pre">selfies</span></code>, <code class="docutils literal notranslate"><span class="pre">min_len</span></code>, <code class="docutils literal notranslate"><span class="pre">max_len</span></code>, and <code class="docutils literal notranslate"><span class="pre">alter_prompt</span></code>.</p>
 <p>Both functions return RDKit molecule objects alongside the generated SMILES and SELFIES representations.</p>
 </div></blockquote>
 </li>
@@ -196,6 +215,7 @@ generation behaviour:</p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo.html">Chempleter modes</a></li>
 </ul>
 
 

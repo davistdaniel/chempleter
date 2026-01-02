@@ -1,7 +1,5 @@
 .. chempleter documentation master file, created by
    sphinx-quickstart on Thu Jan  1 12:33:30 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Welcome to Chempleter
 ===========================================
@@ -11,19 +9,19 @@ It accepts `SMILES <https://en.wikipedia.org/wiki/Simplified_Molecular_Input_Lin
 The library also has an optional graphical user interface to interact with the model.
 
 .. image::
-   images/chempleter_in_action.gif
+   images/extend_demo.gif
    :align: center
-   :scale: 60 %
+   :scale: 70 %
 
+See :doc:`chempleter in action <demo>` or to get started, see :doc:`getting started <usage>`.
 
 What can chempleter do?
 ----------------------------
 
 * Currently, Chempleter accepts an initial molecule/molecular fragment in SMILES format and generates a larger molecule with that intial structure included, while respecting chemical syntax. It also shows some interesting descriptors.
 * It can be used to generate a wide range of structural analogs which the share same core structure (by changing the sampling temperature) or decorate a core scaffold iteratively (by increasing generated token lengths).
+* It can be used to bridge two molecules/molecular fragments.
 * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
-
-To get started, see :doc:`getting started <usage>`.
 
 
 .. toctree::
@@ -33,5 +31,6 @@ To get started, see :doc:`getting started <usage>`.
 
    usage
    installation
+   demo
    
 

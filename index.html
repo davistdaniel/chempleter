@@ -43,16 +43,17 @@
 <p>Chempleter is a lightweight generative model which utilises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
 It accepts <a class="reference external" href="https://en.wikipedia.org/wiki/Simplified_Molecular_Input_Line_Entry_System">SMILES</a> notation as input and enforces chemical syntax validity using <a class="reference external" href="https://selfies.readthedocs.io/en/latest/">SELFIES</a> for the generated molecules.
 The library also has an optional graphical user interface to interact with the model.</p>
-<a class="reference internal image-reference" href="_images/chempleter_in_action.gif"><img alt="_images/chempleter_in_action.gif" class="align-center" src="_images/chempleter_in_action.gif" style="width: 469.2px; height: 488.4px;" />
+<a class="reference internal image-reference" href="_images/extend_demo.gif"><img alt="_images/extend_demo.gif" class="align-center" src="_images/extend_demo.gif" style="width: 620.1999999999999px; height: 617.4px;" />
 </a>
+<p>See <a class="reference internal" href="demo.html"><span class="doc">chempleter in action</span></a> or to get started, see <a class="reference internal" href="usage.html"><span class="doc">getting started</span></a>.</p>
 <section id="what-can-chempleter-do">
 <h2>What can chempleter do?<a class="headerlink" href="#what-can-chempleter-do" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Currently, Chempleter accepts an initial molecule/molecular fragment in SMILES format and generates a larger molecule with that intial structure included, while respecting chemical syntax. It also shows some interesting descriptors.</p></li>
 <li><p>It can be used to generate a wide range of structural analogs which the share same core structure (by changing the sampling temperature) or decorate a core scaffold iteratively (by increasing generated token lengths).</p></li>
+<li><p>It can be used to bridge two molecules/molecular fragments.</p></li>
 <li><p>In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more “goal-directed” predictions.</p></li>
 </ul>
-<p>To get started, see <a class="reference internal" href="usage.html"><span class="doc">getting started</span></a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -84,6 +85,7 @@ The library also has an optional graphical user interface to interact with the m
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo.html">Chempleter modes</a></li>
 </ul>
 
 
