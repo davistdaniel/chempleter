@@ -31,7 +31,7 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
 
 
 ## Prerequisites
-* Python ">=3.13"
+* Python ">=3.12"
 * [uv](https://docs.astral.sh/uv/) (optional but recommended)
 
 ## Getting started
