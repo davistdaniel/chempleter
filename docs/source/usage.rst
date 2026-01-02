@@ -25,7 +25,6 @@ Setting up chempleter on your device
                 ``uvx --from chempleter chempleter-gui.exe``
 
 
-
 Generating molecules
 ----------------------------------------
 
@@ -62,6 +61,18 @@ Generating molecules
             images/evolve_example.png
             :align: center
 
+    * ``bridge``:
+
+        Description: Takes two starting molecular fragments (in SMILES notation) and uses the GRU model to predict a bridge between them.
+
+        Behaviour: Includes a retry logic. If the generated molecule is same as the input, it will randomise the first fragment.
+
+        An example with ``Bridge`` for a Benzene(c1ccccc1) and Pyridine(c1ccncc1):
+
+        .. image::
+            images/bridge_example.png
+            :align: center
+
 
 Use the GUI
 ^^^^^^^^^^^^^^^^^^^^
@@ -74,7 +85,7 @@ Use the GUI
 
     * **Sampling** : Most probable selects the molecule with the highest likelihood for the given starting structure, producing the same result on repeated generations. Random generates a new molecule each time, while still including the input structure.
 
-    * **Generation type** : Extend will ouput a generated molecule which is extended based on the input fragment, while Evolve will ouput multiple generated molecules each based on their previous molecular fragment.
+    * **Generation type** : Extend will ouput a generated molecule which is extended based on the input fragment, while Evolve will ouput multiple generated molecules each based on their previous molecular fragment. Bridge will bridge two molecular fragments.
 
 
 
@@ -106,6 +117,17 @@ Chempleter can be used programmatically to extend or iteratively evolve molecule
          n_evolve=4
      )
 
+* To iteratively evolve a molecule, use ``chempleter.inference.evolve``:
+
+  .. code-block:: python
+
+    from chempleter.inference import bridge
+
+    generated_mol, generated_selfies, generated_smiles = bridge(
+        frag1_smiles="c1ccccc1",frag2_smiles="c1ccncc1")
+
+    print(generated_smiles)
+
 * Options
 
     Both ``extend`` and ``evolve`` accept several optional arguments to control
@@ -115,7 +137,7 @@ Chempleter can be used programmatically to extend or iteratively evolve molecule
     - ``stoi_file`` / ``itos_file``: Paths to token mapping files.
     - ``selfies``: Input SELFIES tokens (overrides ``smiles``).
     - ``smiles``: Input SMILES string to extend or evolve.
-    - ``min_len``: Minimum final sequence length.
+    - ``selfies``: Minimum final sequence length.
     - ``max_len``: Maximum number of generated tokens.
     - ``temperature``: Sampling temperature.
     - ``k``: Top-k sampling parameter.
@@ -126,6 +148,8 @@ Chempleter can be used programmatically to extend or iteratively evolve molecule
     Additional options for ``evolve``:
 
     - ``n_evolve``: Number of evolutionary extension steps.
+
+    ``bridge`` accepts all parameters of ``extend`` except ``selfies``, ``min_len``, ``max_len``, and ``alter_prompt``.
 
     Both functions return RDKit molecule objects alongside the generated SMILES and SELFIES representations.
 
