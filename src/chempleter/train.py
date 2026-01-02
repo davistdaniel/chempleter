@@ -12,7 +12,7 @@ device = (
 )
 
 
-def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=device):
+def train_one_epoch(model_type,model, dataloader, optimizer, criterion, scheduler, device=device):
     """
     Train the model for one epoch.
 
@@ -43,8 +43,17 @@ def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=d
 
         # set inputs and targets
         inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        targets = batch[:, 1:].clone()
 
+        if model_type=="bridge":
+            bridge_token_idx = 4 # default for ["BRIDGE"]
+            # ignore everything before bridge token for calcualting loss
+            for token_sequence_idx in range(targets.size(0)):
+                bridge_token_pos = (inputs[token_sequence_idx] == bridge_token_idx).nonzero(as_tuple=True)[0] # find position of bridge token
+                if len(bridge_token_pos)>0:
+                    targets[token_sequence_idx, :bridge_token_pos[0]] = 0 # default padding index
+
+        
         logits, _ = model(inputs, batch_tensor_lengths - 1)
         logits_flat = logits.view(-1, logits.size(-1))
         targets_flat = targets.reshape(-1)
@@ -69,6 +78,7 @@ def train_one_epoch(model, dataloader, optimizer, criterion, scheduler, device=d
 
 def start_training(
     n_epochs,
+    model_type,
     model,
     dataloader,
     optimizer=None,
@@ -82,6 +92,8 @@ def start_training(
 
     :param n_epochs: Number of epochs to train the model
     :type n_epochs: int
+    :param model: Type of model to train, either extend or bridge
+    :type model_type: str
     :param model: Pytorch model to train
     :type model: chempleter.model.ChempleterModel
     :param dataloader: DataLoader containing training batches
@@ -119,7 +131,7 @@ def start_training(
     for epoch in range(n_epochs):
         start_time = time.time()
         avg_loss = train_one_epoch(
-            model, dataloader, optimizer, criterion, scheduler, device
+            model_type, model, dataloader, optimizer, criterion, scheduler, device
         )
         print(f"Epoch {epoch}: Loss {avg_loss:.4f}")
         if current_lr != scheduler.get_last_lr():
@@ -142,3 +154,4 @@ def start_training(
             print(f"Saved model at Epoch {epoch}")
 
         print(f"Time taken for Epoch {epoch}: {time.time() - start_time}")
+
