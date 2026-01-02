@@ -15,12 +15,32 @@ device = (
     else "cpu"
 )
 
-def _get_default_data(model, stoi_file, itos_file):
-    default_stoi_file = Path(resources.files("chempleter.data").joinpath("stoi.json"))
-    default_itos_file = Path(resources.files("chempleter.data").joinpath("itos.json"))
-    default_checkpoint_file = Path(
-        resources.files("chempleter.data").joinpath("model.pt")
-    )
+
+def _get_default_data(generation_type, model, stoi_file, itos_file):
+    if generation_type in ["extend", "evolve"]:
+        default_stoi_file = Path(
+            resources.files("chempleter.data").joinpath("stoi.json")
+        )
+        default_itos_file = Path(
+            resources.files("chempleter.data").joinpath("itos.json")
+        )
+        default_checkpoint_file = Path(
+            resources.files("chempleter.data").joinpath("model.pt")
+        )
+
+    elif generation_type == "bridge":
+        default_stoi_file = Path(
+            resources.files("chempleter.data").joinpath("bridge_stoi.json")
+        )
+        default_itos_file = Path(
+            resources.files("chempleter.data").joinpath("bridge_itos.json")
+        )
+        default_checkpoint_file = Path(
+            resources.files("chempleter.data").joinpath("bridge_model.pt")
+        )
+
+    else:
+        raise ValueError("Invalid generation type")
 
     if stoi_file is None:
         logging.info("Using default stoi file")
@@ -40,11 +60,19 @@ def _get_default_data(model, stoi_file, itos_file):
         checkpoint = torch.load(
             default_checkpoint_file, map_location=device, weights_only=True
         )
-        model.load_state_dict(checkpoint["model_state_dict"])
+        model.load_state_dict(checkpoint)
 
     return stoi, itos, model
 
-def handle_prompt(smiles, selfies, stoi=None, alter_prompt=False):
+
+def handle_prompt(
+    smiles="",
+    selfies=None,
+    stoi=None,
+    alter_prompt=False,
+    frag1_smiles=None,
+    frag2_smiles=None,
+):
     """
     This function handles the smiles input by the user.
     Note that the selfies can be directly given, in that case, it will just add the "[START]" token.
@@ -71,6 +99,21 @@ def handle_prompt(smiles, selfies, stoi=None, alter_prompt=False):
                 raise ValueError("Invalid SELFIES Token: ", token)
         # manual tokens, only start token is added in this case.
         prompt = ["[START]"] + selfies
+
+        return prompt
+    elif frag1_smiles is not None and frag1_smiles is not None:
+        try:
+            frag1_selfie = sf.encoder(frag1_smiles, strict=False)
+            frag2_selfie = sf.encoder(frag2_smiles, strict=False)
+        except sf.EncoderError as e:
+            logging.error("SMILES encode error")
+            raise sf.EncoderError(e)
+
+        frag1_symbols = list(sf.split_selfies(frag1_selfie))
+        frag2_symbols = list(sf.split_selfies(frag2_selfie))
+
+        prompt = ["[START]"] + frag1_symbols + ["[MASK]"] + frag2_symbols + ["[BRIDGE]"]
+        return prompt, frag1_symbols, frag2_symbols
     else:
         if smiles.strip().replace(" ", "") != "":
             logging.info(f"Input SMILES: {smiles}")
@@ -107,7 +150,7 @@ def handle_prompt(smiles, selfies, stoi=None, alter_prompt=False):
             )
             prompt = ["[START]"]
 
-    return prompt
+        return prompt
 
 
 def handle_len(prompt, min_len, max_len):
@@ -186,7 +229,9 @@ def handle_sampling(last_atom_logits, next_atom_criteria, temperature, k):
     return next_atom_id
 
 
-def output_molecule(generated_ids, itos):
+def output_molecule(
+    generation_type, generated_ids, itos, frag1_symbols=[], frag2_symbols=[]
+):
     """
     Convert generated token IDs to SELFIES string and decode to SMILES.
 
@@ -202,24 +247,38 @@ def output_molecule(generated_ids, itos):
         [
             itos[idx]
             for idx in generated_ids
-            if itos[idx] not in ["[END]", "[START]", "[PAD]"]
+            if itos[idx] not in ["[END]", "[START]", "[PAD]", ["MASK"], ["BRIDGE"]]
         ]
     )
+
+    if generation_type == "bridge":
+        generated_selfies = (
+            "".join(frag1_symbols) + generated_selfies + "".join(frag2_symbols)
+        )
+
     logging.info(f"Generated SELFIE: {generated_selfies}")
     generated_smiles = sf.decoder(generated_selfies)
     logging.info(f"Generated SMILES from decoding: {generated_smiles}")
-    ignored_token_proportion = (
+    ignored_token_factor = (
         len(generated_selfies) - len(sf.encoder(generated_smiles))
     ) / len(generated_selfies)
     logging.info(
-        f"Proportion of generated tokens ignored by SELFIES decoding : {ignored_token_proportion}"
+        f"Proportion of generated tokens ignored by SELFIES decoding : {ignored_token_factor}"
     )
 
-    return generated_smiles, generated_selfies
+    return generated_smiles, generated_selfies, ignored_token_factor
 
 
 def generation_loop(
-    model, prompt, stoi, min_len, max_len, next_atom_criteria, temperature, k
+    generation_type,
+    model,
+    prompt,
+    stoi,
+    min_len,
+    max_len,
+    next_atom_criteria,
+    temperature,
+    k,
 ):
     """
     This is the main generation loop, which uses the model to produce tokens.
@@ -246,13 +305,19 @@ def generation_loop(
 
     with torch.no_grad():
         seed_ids = [stoi[symbol] for symbol in prompt]
-        generated_ids = seed_ids[:]
+        if generation_type in ["extend", "evolve"]:
+            generated_ids = seed_ids[:]
+        elif generation_type == "bridge":
+            generated_ids = []
+        else:
+            raise ValueError("Invalid generation type")
+
         current_input = torch.tensor([seed_ids]).to(device)
 
         hidden = None
 
         for i in range(max_len):
-            current_lengths = torch.tensor([current_input.size(1)])
+            current_lengths = torch.tensor([current_input.size(1)]).to(device)
 
             logits, hidden = model(current_input, current_lengths, hidden)
             last_atom_logits = logits[0, -1, :]
@@ -269,12 +334,21 @@ def generation_loop(
                     )
                 else:
                     break
+            elif generation_type == "bridge" and next_atom_id in [
+                stoi["[MASK]"],
+                stoi["[BRIDGE]"],
+            ]:
+                last_atom_logits[next_atom_id] = -float("inf")
+                next_atom_id = handle_sampling(
+                    last_atom_logits, next_atom_criteria, temperature, k
+                )
 
             generated_ids.append(next_atom_id)
 
             current_input = torch.tensor([[next_atom_id]]).to(device)
 
     return generated_ids
+
 
 def extend(
     model=None,
@@ -289,7 +363,7 @@ def extend(
     next_atom_criteria="top_k_temperature",
     device=device,
     alter_prompt=False,
-    randomise_prompt=True
+    randomise_prompt=True,
 ):
     """
     Extend a molecule given a substructure.
@@ -327,12 +401,20 @@ def extend(
 
     def _generate_from(prompt):
         generated_ids = generation_loop(
-        model, prompt, stoi, min_len, max_len, next_atom_criteria, temperature, k
-    )
+            "extend",
+            model,
+            prompt,
+            stoi,
+            min_len,
+            max_len,
+            next_atom_criteria,
+            temperature,
+            k,
+        )
         return generated_ids
 
     # get default data if model, stoi or itos is not given
-    stoi, itos, model = _get_default_data(model, stoi_file, itos_file)
+    stoi, itos, model = _get_default_data("extend", model, stoi_file, itos_file)
 
     # put model in evaluation mode
     model.to(device)
@@ -347,36 +429,47 @@ def extend(
     # generate
     generated_smiles = prompt
     generated_ids = _generate_from(prompt=prompt)
-    generated_smiles, generated_selfies = output_molecule(generated_ids, itos)
+    generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
+        "extend", generated_ids, itos
+    )
 
-    max_retries=3
+    max_retries = 3
     retry_n = 0
 
-    while generated_smiles == smiles and len(prompt) > 0 and retry_n<=max_retries:
+    while generated_smiles == smiles and len(prompt) > 0 and retry_n <= max_retries:
         if alter_prompt:
             prompt = prompt[:-1]
             logging.info(f"Retry {retry_n} with altered prompt : {prompt}")
             generated_ids = _generate_from(prompt=prompt)
-            generated_smiles, generated_selfies = output_molecule(generated_ids, itos)
+            generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
+                "extend", generated_ids, itos
+            )
             retry_n += 1
         elif randomise_prompt:
             try:
                 temp_mol = Chem.MolFromSmiles(smiles)
-                logging.info("Same molecule as input, trying to randomise input smiles.")
-                prompt = handle_prompt(Chem.MolToSmiles(temp_mol,canonical=False,doRandom=True), selfies, stoi, alter_prompt)
+                logging.info(
+                    "Same molecule as input, trying to randomise input smiles."
+                )
+                prompt = handle_prompt(
+                    Chem.MolToSmiles(temp_mol, canonical=False, doRandom=True),
+                    selfies,
+                    stoi,
+                    alter_prompt,
+                )
                 logging.info(f"Retry {retry_n} with randomised prompt : {prompt}")
                 generated_ids = _generate_from(prompt=prompt)
-                generated_smiles, generated_selfies = output_molecule(generated_ids, itos)
+                generated_smiles, generated_selfies, ingored_token_factor = (
+                    output_molecule("extend", generated_ids, itos)
+                )
                 retry_n += 1
             except Exception as e:
-                logging.error(
-                    f"Randomisation failed : {e}"
-                )
+                logging.error(f"Randomisation failed : {e}")
                 break
         else:
             logging.warning(
-            "Same molecule as prompt. This molecule cannot be extended. Try again with a different prompt."
-        )
+                "Same molecule as prompt. This molecule cannot be extended. Try again with a different prompt."
+            )
             break
 
     m = Chem.MolFromSmiles(generated_smiles)
@@ -384,6 +477,7 @@ def extend(
         raise ValueError("Invalid molecule")
 
     return m, generated_smiles, generated_selfies
+
 
 def evolve(
     model=None,
@@ -400,14 +494,47 @@ def evolve(
     alter_prompt=False,
     n_evolve=4,
 ):
+    """
+    Evolve a molecule given a substructure.
+
+    :param model: Trained ChempleterModel. If None, a default trained model is loaded.
+    :type model: chempleter.model.ChempleterModel or None
+    :param stoi_file: Path to JSON file mapping strings to integers.
+    :type stoi_file: pathlib.Path or None
+    :param itos_file: Path to JSON file mapping integers to strings.
+    :type itos_file: pathlib.Path or None
+    :param selfies: Input SELFIES tokens list (if provided, smiles is ignored).
+    :type selfies: list[str] or None
+    :param smiles: Input SMILES string (used if selfies is None).
+    :type smiles: str
+    :param min_len: Minimum number of generated tokens (absolute final length).
+    :type min_len: int or None
+    :param max_len: Maximum number of generated tokens (treated as additional tokens).
+    :type max_len: int
+    :param temperature: Sampling temperature for softmax sampling.
+    :type temperature: float
+    :param k: Number of top tokens to consider for top-k sampling.
+    :type k: int
+    :param next_atom_criteria: Sampling strategy; one of "greedy", "temperature", "top_k_temperature", "random".
+    :type next_atom_criteria: str
+    :param device: Device identifier to run the model on (e.g. "cpu" or accelerator type).
+    :type device: str
+    :param alter_prompt: Whether to allow prompt alteration if generation fails or input encoding errors occur.
+    :type alter_prompt: bool
+
+    :returns: Tuple with an RDKit molecule, generated SMILES string, and generated SELFIES string.
+    :rtype: tuple[rdkit.Chem.Mol, str, str]
+
+    :raises ValueError: If the generated molecule is invalid.
+    """
     if smiles == "":
-        _,smiles,_ = extend(smiles=smiles,max_len=max_len)
+        _, smiles, _ = extend(smiles=smiles, max_len=max_len)
     generated_mols_list = [Chem.MolFromSmiles(smiles)] + [None] * n_evolve
-    generated_smiles_list = [smiles]+ [None] * n_evolve
+    generated_smiles_list = [smiles] + [None] * n_evolve
     generated_selfies_list = [sf.encoder(smiles)] + [None] * n_evolve
     current_smiles = smiles
     current_max_len = len(smiles)
-    for idx in range(1,n_evolve+1):
+    for idx in range(1, n_evolve + 1):
         (
             generated_mols_list[idx],
             generated_smiles_list[idx],
@@ -425,7 +552,7 @@ def evolve(
             next_atom_criteria=next_atom_criteria,
             device=device,
             alter_prompt=alter_prompt,
-            randomise_prompt=False
+            randomise_prompt=False,
         )
         if current_smiles == generated_smiles_list[idx]:
             logging.warning(
@@ -434,7 +561,85 @@ def evolve(
             break
         current_smiles = generated_smiles_list[idx]
         current_max_len = len(generated_smiles_list[idx])
-    
-    return generated_mols_list[:idx],generated_selfies_list[:idx],generated_smiles_list[:idx]
-    
-            
+
+    return (
+        generated_mols_list[:idx],
+        generated_selfies_list[:idx],
+        generated_smiles_list[:idx],
+    )
+
+
+def bridge(
+    frag1_smiles,
+    frag2_smiles,
+    model=None,
+    stoi_file=None,
+    itos_file=None,
+    temperature=1,
+    k=10,
+    next_atom_criteria="temperature",
+    device=device,
+):
+    def _generate_from(prompt):
+        generated_ids = generation_loop(
+            "bridge",
+            model=model,
+            prompt=prompt,
+            stoi=stoi,
+            min_len=5,
+            max_len=15,
+            next_atom_criteria=next_atom_criteria,
+            temperature=temperature,
+            k=k,
+        )
+        return generated_ids
+
+    stoi, itos, model = _get_default_data("bridge", model, stoi_file, itos_file)
+
+    # put model in evaluation mode
+    model.to(device)
+    model.eval()
+
+    # first try
+    prompt, frag1_symbols, frag2_symbols = handle_prompt(
+        frag1_smiles=frag1_smiles, frag2_smiles=frag2_smiles
+    )
+
+    generated_ids = _generate_from(prompt)
+    generated_smiles, generated_selfies, ignored_token_factor = output_molecule(
+        "bridge",
+        generated_ids,
+        itos,
+        frag1_symbols=frag1_symbols,
+        frag2_symbols=frag2_symbols,
+    )
+
+    max_retries = 3
+    retry_n = 0
+
+    while generated_smiles == frag1_smiles and retry_n <= max_retries:
+        try:
+            temp_mol = Chem.MolFromSmiles(frag1_smiles)
+            logging.info("Same molecule as input, trying to randomise input smiles.")
+            prompt, frag1_symbols, frag2_symbols = handle_prompt(
+                frag1_smiles=Chem.MolToSmiles(temp_mol, canonical=False, doRandom=True),
+                frag2_smiles=frag2_smiles,
+            )
+            logging.info(f"Retry {retry_n} with randomised prompt : {prompt}")
+            generated_ids = _generate_from(prompt=prompt)
+            generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
+                "bridge",
+                generated_ids,
+                itos,
+                frag1_symbols=frag1_symbols,
+                frag2_symbols=frag2_symbols,
+            )
+            retry_n += 1
+        except Exception as e:
+            logging.error(f"Randomisation failed : {e}")
+            break
+    m = Chem.MolFromSmiles(generated_smiles)
+    if m is None:
+        raise ValueError("Invalid molecule")
+
+    return m, generated_smiles, generated_selfies

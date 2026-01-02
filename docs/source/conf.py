@@ -41,5 +41,5 @@ html_theme_options = {
     'logo_name': False,
     'show_powered_by': False,
     'page_width':'1200px',
-    'extra_nav_links' : {"Github": "https://github.com/davistdaniel/chempleter","PyPi":"https://pypi.org/project/chempleter/"}
+    'extra_nav_links' : {"Github": "https://github.com/davistdaniel/chempleter","PyPi":"https://pypi.org/project/chempleter/"},
 }
