@@ -241,7 +241,7 @@ class TestChempleterInference():
 
     def test_output_molecule(self,mock_itos):
         gen_ids = [0, 3, 4, 1] # [START], [C], [O], [END]
-        smiles, selfies = output_molecule(gen_ids, mock_itos)
+        smiles, selfies, ingored_token_factor = output_molecule(gen_ids, mock_itos)
         assert selfies == "[C][O]"
         assert smiles == "CO"
 
