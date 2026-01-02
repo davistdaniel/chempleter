@@ -430,7 +430,7 @@ def extend(
     generated_smiles = prompt
     generated_ids = _generate_from(prompt=prompt)
     generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
-        generated_ids, itos
+        "extend",generated_ids, itos
     )
 
     max_retries = 3
