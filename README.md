@@ -26,7 +26,7 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/chempleter_in_action.gif" alt="Demo Gif" width="400">
+<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/extend_demo.gif" alt="Demo Gif" width="400">
 </div>
 
 
