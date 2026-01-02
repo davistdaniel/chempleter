@@ -39,7 +39,8 @@ class ChempleterDataset(Dataset):
             self.selfies_to_integer[symbol] for symbol in symbols_molecule
         ]
         return torch.tensor(integer_molecule, dtype=torch.long)
-    
+
+
 class ChempleterRandomisedSmilesDataset(Dataset):
     """
     PyTorch Dataset for SELFIES molecular representations.
@@ -69,24 +70,31 @@ class ChempleterRandomisedSmilesDataset(Dataset):
         molecule = Chem.MolFromSmiles(molecule_in_smiles)
         if molecule is not None:
             try:
-                molecule_in_selfies = sf.encoder(Chem.MolToSmiles(molecule,canonical=False,doRandom=True))
+                molecule_in_selfies = sf.encoder(
+                    Chem.MolToSmiles(molecule, canonical=False, doRandom=True)
+                )
             except Exception as e:
                 logging.error(f"SELFIES encoding error for randomised SMILES: {e}")
         else:
             molecule_in_selfies = sf.encoder(molecule_in_smiles)
 
-        symbols_molecule = ["[START]"] + list(sf.split_selfies(molecule_in_selfies)) + ["[END]"]
+        symbols_molecule = (
+            ["[START]"] + list(sf.split_selfies(molecule_in_selfies)) + ["[END]"]
+        )
         integer_molecule = []
 
         # check if all symbols exist in stoi
         for symbol in symbols_molecule:
             if symbol not in self.selfies_to_integer:
-                raise RuntimeError(f"Molecule symbol not found in stoi. Add {symbol} in stoi with correct integer mapping.")
+                raise RuntimeError(
+                    f"Molecule symbol not found in stoi. Add {symbol} in stoi with correct integer mapping."
+                )
             else:
                 integer_molecule.append(self.selfies_to_integer[symbol])
 
         return torch.tensor(integer_molecule, dtype=torch.long)
-    
+
+
 class ChempleterRandomisedBridgeDataset(Dataset):
     """
     PyTorch Dataset for SELFIES molecular representations.
@@ -116,20 +124,24 @@ class ChempleterRandomisedBridgeDataset(Dataset):
         molecule = Chem.MolFromSmiles(molecule_in_smiles)
         if molecule is not None:
             try:
-                molecule_in_selfies = sf.encoder(Chem.MolToSmiles(molecule,canonical=False,doRandom=True))
+                molecule_in_selfies = sf.encoder(
+                    Chem.MolToSmiles(molecule, canonical=False, doRandom=True)
+                )
             except Exception as e:
                 molecule_in_selfies = sf.encoder(molecule_in_smiles)
                 logging.error(f"SELFIES encoding error for randomised SMILES: {e}")
         else:
             molecule_in_selfies = sf.encoder(molecule_in_smiles)
-        
+
         symbols = list(sf.split_selfies(molecule_in_selfies))
 
         # try fragmentation
-        if len(symbols)>10:
-            len_frag1 = random.randint(1,len(symbols)-8)
-            len_bridge = random.randint(1,10) # bridge len ranges from 1 to 10.# this would be constraint later
-            len_frag2 = min(len_frag1+len_bridge,len(symbols)-1) 
+        if len(symbols) > 10:
+            len_frag1 = random.randint(1, len(symbols) - 8)
+            len_bridge = random.randint(
+                1, 10
+            )  # bridge len ranges from 1 to 10.# this would be constraint later
+            len_frag2 = min(len_frag1 + len_bridge, len(symbols) - 1)
             frag1 = symbols[:len_frag1]
             bridge = symbols[len_frag1:len_frag2]
             frag2 = symbols[len_frag2:]
@@ -139,13 +151,17 @@ class ChempleterRandomisedBridgeDataset(Dataset):
             bridge = []
             frag2 = []
 
-        symbols_molecule = ["[START]"] + frag1 + ["[MASK]"] + frag2 + ["[BRIDGE]"] + bridge + ["[END]"]
+        symbols_molecule = (
+            ["[START]"] + frag1 + ["[MASK]"] + frag2 + ["[BRIDGE]"] + bridge + ["[END]"]
+        )
         integer_molecule = []
 
         # check if all symbols exist in stoi
         for symbol in symbols_molecule:
             if symbol not in self.selfies_to_integer:
-                raise RuntimeError(f"Molecule symbol not found in stoi. Add {symbol} in stoi with correct integer mapping.")
+                raise RuntimeError(
+                    f"Molecule symbol not found in stoi. Add {symbol} in stoi with correct integer mapping."
+                )
             else:
                 integer_molecule.append(self.selfies_to_integer[symbol])
 

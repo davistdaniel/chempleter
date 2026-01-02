@@ -430,7 +430,7 @@ def extend(
     generated_smiles = prompt
     generated_ids = _generate_from(prompt=prompt)
     generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
-        "extend",generated_ids, itos
+        "extend", generated_ids, itos
     )
 
     max_retries = 3
@@ -494,7 +494,6 @@ def evolve(
     alter_prompt=False,
     n_evolve=4,
 ):
-    
     """
     Evolve a molecule given a substructure.
 
@@ -581,28 +580,25 @@ def bridge(
     next_atom_criteria="temperature",
     device=device,
 ):
-    
     def _generate_from(prompt):
         generated_ids = generation_loop(
-                "bridge",
-                model=model,
-                prompt=prompt,
-                stoi=stoi,
-                min_len=5,
-                max_len=15,
-                next_atom_criteria=next_atom_criteria,
-                temperature=temperature,
-                k=k,
-            )
+            "bridge",
+            model=model,
+            prompt=prompt,
+            stoi=stoi,
+            min_len=5,
+            max_len=15,
+            next_atom_criteria=next_atom_criteria,
+            temperature=temperature,
+            k=k,
+        )
         return generated_ids
-
 
     stoi, itos, model = _get_default_data("bridge", model, stoi_file, itos_file)
 
     # put model in evaluation mode
     model.to(device)
     model.eval()
-
 
     # first try
     prompt, frag1_symbols, frag2_symbols = handle_prompt(
@@ -617,19 +613,17 @@ def bridge(
         frag1_symbols=frag1_symbols,
         frag2_symbols=frag2_symbols,
     )
-        
 
     max_retries = 3
     retry_n = 0
 
-    while generated_smiles == frag1_smiles and retry_n<=max_retries:
+    while generated_smiles == frag1_smiles and retry_n <= max_retries:
         try:
             temp_mol = Chem.MolFromSmiles(frag1_smiles)
-            logging.info(
-                "Same molecule as input, trying to randomise input smiles."
-            )
+            logging.info("Same molecule as input, trying to randomise input smiles.")
             prompt, frag1_symbols, frag2_symbols = handle_prompt(
-                frag1_smiles=Chem.MolToSmiles(temp_mol,canonical=False,doRandom=True), frag2_smiles=frag2_smiles
+                frag1_smiles=Chem.MolToSmiles(temp_mol, canonical=False, doRandom=True),
+                frag2_smiles=frag2_smiles,
             )
             logging.info(f"Retry {retry_n} with randomised prompt : {prompt}")
             generated_ids = _generate_from(prompt=prompt)

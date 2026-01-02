@@ -12,7 +12,9 @@ device = (
 )
 
 
-def train_one_epoch(model_type,model, dataloader, optimizer, criterion, scheduler, device=device):
+def train_one_epoch(
+    model_type, model, dataloader, optimizer, criterion, scheduler, device=device
+):
     """
     Train the model for one epoch.
 
@@ -45,15 +47,18 @@ def train_one_epoch(model_type,model, dataloader, optimizer, criterion, schedule
         inputs = batch[:, :-1]
         targets = batch[:, 1:].clone()
 
-        if model_type=="bridge":
-            bridge_token_idx = 4 # default for ["BRIDGE"]
+        if model_type == "bridge":
+            bridge_token_idx = 4  # default for ["BRIDGE"]
             # ignore everything before bridge token for calcualting loss
             for token_sequence_idx in range(targets.size(0)):
-                bridge_token_pos = (inputs[token_sequence_idx] == bridge_token_idx).nonzero(as_tuple=True)[0] # find position of bridge token
-                if len(bridge_token_pos)>0:
-                    targets[token_sequence_idx, :bridge_token_pos[0]] = 0 # default padding index
+                bridge_token_pos = (
+                    inputs[token_sequence_idx] == bridge_token_idx
+                ).nonzero(as_tuple=True)[0]  # find position of bridge token
+                if len(bridge_token_pos) > 0:
+                    targets[token_sequence_idx, : bridge_token_pos[0]] = (
+                        0  # default padding index
+                    )
 
-        
         logits, _ = model(inputs, batch_tensor_lengths - 1)
         logits_flat = logits.view(-1, logits.size(-1))
         targets_flat = targets.reshape(-1)
@@ -154,4 +159,3 @@ def start_training(
             print(f"Saved model at Epoch {epoch}")
 
         print(f"Time taken for Epoch {epoch}: {time.time() - start_time}")
-
