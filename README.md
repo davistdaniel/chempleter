@@ -16,6 +16,10 @@
 Chempleter is lightweight generative model which utlises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
 It accepts SMILES notation as input and enforces chemical syntax validity using SELFIES for the generated molecules. 
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/extend_demo.gif" alt="Demo Gif" width="400">
+</div>
+
 
 * What can Chempleter do?
     
@@ -23,11 +27,12 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     
     * It can be used to generate a wide range of structural analogs which the share same core structure (by changing the sampling temperature) or decorate a core scaffold iteratively (by increasing generated token lengths)
 
+    * It can be used to bridge two molecules/molecular fragments.
+
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/extend_demo.gif" alt="Demo Gif" width="400">
-</div>
+
+See [chempleter in action.](https://davistdaniel.github.io/chempleter/demo.html)
 
 
 ## Prerequisites
