@@ -32,5 +32,6 @@ What can chempleter do?
    usage
    installation
    demo
+   validation
    
 
