@@ -1,9 +1,11 @@
 import torch
+import logging
 import time
 import torch.optim as optim
 from torch import nn
 from pathlib import Path
 from torch.nn.utils import clip_grad_norm_
+
 
 device = (
     torch.accelerator.current_accelerator().type
@@ -91,6 +93,8 @@ def start_training(
     scheduler=None,
     device=device,
     model_save_path=None,
+    resume=False,
+    checkpoint_path=None
 ):
     """
     Start training the model for a specified number of epochs.
@@ -99,7 +103,7 @@ def start_training(
     :type n_epochs: int
     :param model: Type of model to train, either extend or bridge
     :type model_type: str
-    :param model: Pytorch model to train
+    :param model: Pytorch model to train or resume training
     :type model: chempleter.model.ChempleterModel
     :param dataloader: DataLoader containing training batches
     :type dataloader: torch.utils.data.DataLoader
@@ -114,8 +118,6 @@ def start_training(
     :param model_save_path: Path to save the model checkpoint
     :type model_save_path: pathlib.Path
     """
-    # model to device
-    model.to(device)
 
     # get defaults
     if not optimizer:
@@ -126,14 +128,54 @@ def start_training(
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="min", patience=3, factor=0.1
         )
+
+    start_epoch = 0
+
+    if resume is True:
+        checkpoint_path = Path(checkpoint_path)
+        if checkpoint_path.exists():
+            logging.info(f"Loading checkpoint from {checkpoint_path} to resume training.")
+            checkpoint = torch.load(checkpoint_path, map_location=device)
+            if "model_state_dict" in checkpoint:
+                model.load_state_dict(checkpoint["model_state_dict"])
+                logging.info("Loaded model state dict from checkpoint.")
+            else:
+                raise ValueError("model_state_dict not found in checkpoint file.")
+            
+            if "optimizer_state_dict" in checkpoint:
+                optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                for state in optimizer.state.values():
+                    for k, v in state.items():
+                        if torch.is_tensor(v):
+                            state[k] = v.to(device)
+                logging.info(f"Loaded optimizer state dict from checkpoint and moved to device : {device}.")
+                
+            if "scheduler_state_dict" in checkpoint:
+                scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+                logging.info("Loaded scheduler state dict from checkpoint.")
+            
+            start_epoch = checkpoint['epoch'] + 1 if "epoch" in checkpoint else 0
+            last_loss = checkpoint['loss'] if "loss" in checkpoint else float("inf")
+            logging.info(f"Set start_epoch : {start_epoch} and last_loss: {last_loss} from checkpoint.")
+
+            if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+                scheduler.best = last_loss
+                logging.info(f"Set scheduler best loss to last_loss: {last_loss} from checkpoint.")
+        else:
+            raise FileNotFoundError(f"checkpoint file not found at path: {str(checkpoint_path)}")
+        
+
+    # model to device
+    model.to(device)
     if not model_save_path:
         model_save_path = Path().cwd()
     else:
         model_save_path = Path(model_save_path)
 
     current_lr = scheduler.get_last_lr()
-    best_loss = float("inf")
-    for epoch in range(n_epochs):
+    best_loss = last_loss if resume is True else float("inf")
+
+    for epoch in range(start_epoch,n_epochs):
         start_time = time.time()
         avg_loss = train_one_epoch(
             model_type, model, dataloader, optimizer, criterion, scheduler, device
