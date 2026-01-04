@@ -20,6 +20,8 @@ def train_one_epoch(
     """
     Train the model for one epoch.
 
+    :param model_type: Type of model to train
+    :type model_type: str
     :param model: Pytorch model to train
     :type model: chempleter.model.ChempleterModel
     :param dataloader: DataLoader containing training batches
@@ -50,7 +52,7 @@ def train_one_epoch(
         targets = batch[:, 1:].clone()
 
         if model_type == "bridge":
-            bridge_token_idx = 4  # default for ["BRIDGE"]
+            bridge_token_idx = 4 # default for [BRIDGE] token
             # ignore everything before bridge token for calcualting loss
             for token_sequence_idx in range(targets.size(0)):
                 bridge_token_pos = (
@@ -101,6 +103,8 @@ def start_training(
 
     :param n_epochs: Number of epochs to train the model
     :type n_epochs: int
+    :param model_type: Type of model to train
+    :type model_type: str
     :param model: Type of model to train, either extend or bridge
     :type model_type: str
     :param model: Pytorch model to train or resume training
@@ -117,6 +121,10 @@ def start_training(
     :type device: str
     :param model_save_path: Path to save the model checkpoint
     :type model_save_path: pathlib.Path
+    :param resume: Flag for resuming training from a checkpoint
+    :type resume: bool
+    :param checkpoint_path: Path to a model checkpoint
+    :type checkpoint_path: str
     """
 
     # get defaults
