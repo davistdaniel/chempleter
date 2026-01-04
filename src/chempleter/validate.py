@@ -21,6 +21,7 @@ device = (
     else "cpu"
 )
 
+
 def _load_checkpoint(checkpoint_path, model, device=device):
     """
     Load a model checkpoint from the specified path and restore its state.
@@ -107,6 +108,22 @@ def _compute_uniqueness(generated_smiles):
 
 
 def _compute_novelty(generated_smiles, reference_smiles):
+    """
+    Compute the novelty of generated SMILES strings.
+
+    This function calculates the proportion of unique generated SMILES strings
+    that are not present in the reference (training) set. Novelty is a measure of how many
+    new or previously unseen molecules were generated.
+
+    :param generated_smiles: A list of generated SMILES.
+    :type generated_smiles: list of str
+    :param reference_smiles: A list of reference SMILES strings to compare against.
+    :type reference_smiles: list of str
+    :return: The novelty score, calculated as the ratio of novel SMILES to unique
+             generated SMILES. Returns a value between 0 and 1, where 1 indicates
+             all generated SMILES are novel.
+    :rtype: float
+    """
     logging.info("Computing novelty of generated smiles ...")
     novel_smiles = [i for i in set(generated_smiles) if i not in set(reference_smiles)]
 
@@ -114,6 +131,23 @@ def _compute_novelty(generated_smiles, reference_smiles):
 
 
 def _compute_descriptors(generated_mols):
+    """
+    Compute descriptors for a a list of generated molecules and calculate aggregate statistics.
+
+    This function calculates molecular descriptors for each molecule (rdkit.Chem.Mol) in the input list,
+    then aggregates the results to compute average, minimum, and maximum values for
+    each descriptor across all molecules.
+
+    :param generated_mols: A list of rdkit.Chem.Mol objects
+    :type generated_mols: list
+
+    :return: A tuple containing four elements:
+        - descriptor_metrics (dict): A dictionary mapping each descriptor name to a list of its values across all molecules.
+        - avg_dict (dict): A dictionary mapping each descriptor name to its average value.
+        - min_dict (dict): A dictionary mapping each descriptor name to its minimum value.
+        - max_dict (dict): A dictionary mapping each descriptor name to its maximum value.
+    :rtype: tuple[dict, dict, dict, dict]
+    """
     descriptor_dict_list = [calculate_descriptors(m) for m in generated_mols]
 
     descriptor_metrics = {i: [] for i in descriptor_dict_list[0].keys()}
@@ -137,6 +171,17 @@ def _compute_descriptors(generated_mols):
 
 
 def _make_distribution_plots(descriptor_metrics, model_name):
+    """
+    Create and save distribution plots for descriptor metrics.
+
+    :param descriptor_metrics: descriptor metrics dict with metric value_list pairs
+    :type descriptor_metrics: dict
+    :param model_name: The name of the model, used as the base filename for
+                       saving the figure (without extension).
+    :type model_name: str
+    :return: None
+    :rtype: None
+    """
     n_subplots = len(descriptor_metrics)
 
     n_cols = math.ceil(math.sqrt(n_subplots))
@@ -169,8 +214,48 @@ def validate_checkpoint(
     reference_smiles_path=None,
     model=None,
     n_samples=1000,
-    report_format = "rst"
+    report_format="rst",
 ):
+    """
+    Validate a trained checkpoint by generating samples and computing metrics.
+
+    This function loads a checkpoint, generates molecules using either the 'extend' or 'bridge'
+    model type, and computes various validation metrics including uniqueness, novelty, and
+    molecular descriptors. It produces a formatted report and descriptor distribution plots.
+
+    :param checkpoint_path: Path to the model checkpoint file.
+    :type checkpoint_path: str
+    :param stoi_file: Path to the string-to-integer (stoi) vocabulary mapping file.
+    :type stoi_file: str
+    :param itos_file: Path to the integer-to-string (itos) vocabulary mapping file.
+    :type itos_file: str
+    :param model_type: Type of generation model to use. Either 'extend' or 'bridge'. Also provide corresponding stoi, itos files.
+    :type model_type: str
+    :param model_name: Name of the model, used for output file naming.
+    :type model_name: str
+    :param reference_smiles_path: Optional path to a CSV file containing reference (training) SMILES strings
+        for novelty computation. If None, novelty will not be computed. Defaults to None.
+    :type reference_smiles_path: str, optional
+    :param model: Optional pre-initialized ChempleterModel instance. If None, a new model
+        will be created with vocabulary size determined from stoi_file. Defaults to None.
+    :type model: ChempleterModel, optional
+    :param n_samples: Number of molecular samples to generate for validation. Defaults to 1000.
+    :type n_samples: int
+    :param report_format: Format for the validation report output. Either 'rst' or 'md'.
+        Defaults to 'rst'.
+    :type report_format: str
+
+    :returns: A tuple containing:
+        - generated_mol_list: List of generated RDKit molecule objects.
+        - generated_smiles_list: List of generated SMILES strings.
+        - generated_selfies_list: List of generated SELFIES strings.
+        - descriptor_metrics: Dictionary containing computed molecular descriptor metrics.
+    :rtype: tuple(list, list, list, dict)
+
+    :raises ValueError: If model_type is not 'extend' or 'bridge', or if report_format
+        is not 'rst' or 'md'.
+    """
+
     with open(stoi_file) as f:
         stoi = json.load(f)
 
@@ -292,7 +377,12 @@ def validate_checkpoint(
         distribution_figure_path=f"{model_name}.png",
     )
 
-    return generated_mol_list, generated_smiles_list, generated_selfies_list, descriptor_metrics
+    return (
+        generated_mol_list,
+        generated_smiles_list,
+        generated_selfies_list,
+        descriptor_metrics,
+    )
 
 
 def _generate_validation_report(
@@ -307,6 +397,36 @@ def _generate_validation_report(
     descriptor_max,
     distribution_figure_path,
 ):
+    """
+    Generate a validation report in markdown format.
+
+    This function creates a comprehensive validation report for a generative model,
+    including generation quality metrics, descriptor statistics, and distribution
+    visualizations. The report is written to a file in RST format.
+
+    :param output_path: Path where the md (markdown) validation report will be saved.
+    :type output_path: str
+    :param model_name: Name of the model being validated.
+    :type model_name: str
+    :param n_samples: Number of samples to be generated by the model for validation.
+    :type n_samples: int
+    :param uniqueness: Uniqueness metric of generated samples (0-1 scale).
+    :type uniqueness: float
+    :param novelty: Novelty metric of generated samples (0-1 scale) or None.
+    :type novelty: float or None
+    :param selfies_fidelity_avg: Average SELFIES fidelity score of generated samples.
+    :type selfies_fidelity_avg: float
+    :param descriptor_avg: Dictionary mapping descriptor names to their average values.
+    :type descriptor_avg: dict
+    :param descriptor_min: Dictionary mapping descriptor names to their minimum values.
+    :type descriptor_min: dict
+    :param descriptor_max: Dictionary mapping descriptor names to their maximum values.
+    :type descriptor_max: dict
+    :param distribution_figure_path: Path to the descriptor distribution visualization image.
+    :type distribution_figure_path: str
+    :return: Path to the generated validation report file.
+    :rtype: Path
+    """
     output_path = Path(output_path)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -382,6 +502,37 @@ def _generate_validation_report_rst(
     descriptor_max,
     distribution_figure_path,
 ):
+    """
+    Generate a validation report in reStructuredText format.
+
+    This function creates a comprehensive validation report for a generative model,
+    including generation quality metrics, descriptor statistics, and distribution
+    visualizations. The report is written to a file in RST format.
+
+    :param output_path: Path where the RST validation report will be saved.
+    :type output_path: str
+    :param model_name: Name of the model being validated.
+    :type model_name: str
+    :param n_samples: Number of samples to be generated by the model for validation.
+    :type n_samples: int
+    :param uniqueness: Uniqueness metric of generated samples (0-1 scale).
+    :type uniqueness: float
+    :param novelty: Novelty metric of generated samples (0-1 scale) or None.
+    :type novelty: float or None
+    :param selfies_fidelity_avg: Average SELFIES fidelity score of generated samples.
+    :type selfies_fidelity_avg: float
+    :param descriptor_avg: Dictionary mapping descriptor names to their average values.
+    :type descriptor_avg: dict
+    :param descriptor_min: Dictionary mapping descriptor names to their minimum values.
+    :type descriptor_min: dict
+    :param descriptor_max: Dictionary mapping descriptor names to their maximum values.
+    :type descriptor_max: dict
+    :param distribution_figure_path: Path to the descriptor distribution visualization image.
+    :type distribution_figure_path: str
+    :return: Path to the generated validation report file.
+    :rtype: Path
+    """
+
     output_path = Path(output_path)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
