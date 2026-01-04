@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14' and extra != 'extra-10-chempleter-cpu' and extra == 'extra-10-chempleter-gpu128'",
@@ -459,12 +459,15 @@ cpu = [
 gpu128 = [
     { name = "torch", version = "2.9.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
 ]
+validation = [
+    { name = "matplotlib" },
+    { name = "tqdm" },
+]
 
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
     { name = "jupyter" },
-    { name = "matplotlib" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
@@ -477,6 +480,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "matplotlib", marker = "extra == 'validation'", specifier = ">=3.10.8" },
     { name = "nicegui", specifier = ">=3.4.1" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pathlib", specifier = ">=1.0.1" },
@@ -485,14 +489,14 @@ requires-dist = [
     { name = "torch", specifier = ">=2.9.1" },
     { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.9.1", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "chempleter", extra = "cpu" } },
     { name = "torch", marker = "extra == 'gpu128'", specifier = ">=2.9.1", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "chempleter", extra = "gpu128" } },
+    { name = "tqdm", marker = "extra == 'validation'", specifier = ">=4.67.1" },
 ]
-provides-extras = ["cpu", "gpu128"]
+provides-extras = ["cpu", "gpu128", "validation"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "ipykernel", specifier = ">=7.1.0" },
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "ruff", specifier = ">=0.14.10" },
