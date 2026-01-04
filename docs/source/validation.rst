@@ -6,6 +6,7 @@ Model history
    :maxdepth: 1
    :caption: Model validation reports:
 
+   validations/extend_v1
    validations/extend_v2
    validations/bridge_v1
 
