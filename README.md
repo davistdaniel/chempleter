@@ -39,14 +39,15 @@ See [chempleter in action.](https://davistdaniel.github.io/chempleter/demo.html)
 * Python ">=3.12"
 * [uv](https://docs.astral.sh/uv/) (optional but recommended)
 
+## Installation
+
+See detailed [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
+
 ## Getting started
 
 Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 
 ## Quick start
-
-You can find more information about installing Chempleter (also via pip) in [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
-
 
 - ### Run the GUI directly without installing (via uv):
 
@@ -56,6 +57,12 @@ You can find more information about installing Chempleter (also via pip) in [ins
     * On linux/MacOS:
         
         ``uvx --from chempleter chempleter-gui``
+
+    * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
+
+    <div align="center">
+    <h2> Or </h2>
+    </div>
 
 - ### Install using uv
 
@@ -71,9 +78,10 @@ You can find more information about installing Chempleter (also via pip) in [ins
 
     * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
-    <div align="center">
-    <h2> Or </h2>
-    </div>
+
+- ### Run GUI after installation
+
+    ``uv run chempleter-gui``
     
  - ### Use as a python library
 
@@ -93,6 +101,8 @@ You can find more information about installing Chempleter (also via pip) in [ins
         Chem.Draw.MolToImage(generated_mol)
         ```
     * For details on available paramenters and inference functions, see [generating molecules](https://davistdaniel.github.io/chempleter/usage.html#generating-molecules).
+
+### Model history and validation
 
 
 ### Project structure
