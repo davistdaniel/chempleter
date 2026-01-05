@@ -2,13 +2,16 @@ import pytest
 import pandas as pd
 import json
 import torch
+import torch.nn as nn
+import torch.optim as optim
 from chempleter.processor import generate_input_data, _selfies_encoder
 from chempleter.model import ChempleterModel
 from chempleter.dataset import ChempleterDataset, collate_fn
 from chempleter.descriptors import calculate_descriptors
 from chempleter.inference import handle_prompt, handle_len, handle_sampling, output_molecule, extend, _get_default_data
 from rdkit import Chem
-
+import selfies as sf
+from unittest.mock import Mock, MagicMock, patch, call
 
 device = (
     torch.accelerator.current_accelerator().type
@@ -33,8 +36,13 @@ def mock_files(tmp_path):
     stoi = {"[PAD]": 0, "[START]": 1, "[END]": 2, "[C]": 3, "[O]": 4}
     with open(stoi_file, "w") as f:
         json.dump(stoi, f)
+
+    itos_file = tmp_path / "itos.json"
+    itos = list(stoi.keys())
+    with open(itos_file, "w") as f:
+        json.dump(itos, f)
         
-    return csv_file, stoi_file
+    return csv_file, stoi_file, itos_file
 
 @pytest.fixture
 def model_params():
@@ -44,6 +52,28 @@ def model_params():
         "hidden_dim": 32,
         "num_layers": 2
     }
+
+@pytest.fixture
+def mock_model():
+    model = Mock(spec=nn.Module)
+    model.train = Mock()
+    model.to = Mock(return_value=model)
+    model.parameters = Mock(return_value=[torch.randn(10, 10, requires_grad=True)])
+    model.state_dict = Mock(return_value={"weight": torch.randn(10, 10)})
+    model.load_state_dict = Mock()
+    
+    # Mock forward pass to return logits and hidden state
+    batch_size, seq_len, vocab_size = 4, 10, 100
+    logits = torch.randn(batch_size, seq_len, vocab_size)
+    hidden = torch.randn(batch_size, seq_len, 64)
+    model.return_value = (logits, hidden)
+    
+    return model
+
+class TestChempleterTrain():
+
+    def test_train_one_epoch()
+
 
 class TestChempeleterProcessor():
     def test_selfies_encoder_valid(self):
@@ -169,11 +199,11 @@ class TestChempeleterDataset():
         """
         Test the length of output from ChempleterDataset
         """
-        ds = ChempleterDataset(*mock_files)
+        ds = ChempleterDataset(selfies_file=mock_files[0],stoi_file=mock_files[1])
         assert len(ds) == 2
 
     def test_dataset_getitem(self,mock_files):
-        ds = ChempleterDataset(*mock_files)
+        ds = ChempleterDataset(selfies_file=mock_files[0],stoi_file=mock_files[1])
         tensor = ds[0]
         
         assert isinstance(tensor, torch.Tensor)
@@ -200,7 +230,7 @@ class TestChempeleterDataset():
         assert padded[2, 3] == 0 # üadding in shorter seq
 
     def test_dataloader_integration(self,mock_files):
-        ds = ChempleterDataset(*mock_files)
+        ds = ChempleterDataset(selfies_file=mock_files[0],stoi_file=mock_files[1])
         dl = torch.utils.data.DataLoader(ds, batch_size=2, collate_fn=collate_fn)
         
         batch_x, batch_len = next(iter(dl))
@@ -252,12 +282,14 @@ class TestChempleterInference():
         assert selfies == "[C][O]"
         assert smiles == "CO"
 
-    # def test_extend(self):
+    def test_extend(self,mock_files,mock_stoi):
 
-    #     model = ChempleterModel(vocab_size=2)
-    #     m, smiles, selfies = extend(smiles="C", model=model, stoi_file=None, itos_file=None,next_atom_criteria="greedy",max_len=2)
-    #     assert smiles == "C"
-    #     assert selfies == "[C]"
+        model = ChempleterModel(vocab_size=5)
+        m, smiles, selfies = extend(smiles="C", model=model, stoi_file=mock_files[1], itos_file=mock_files[2],next_atom_criteria="greedy",max_len=1,device="cpu")
+        selfie_list = sf.split_selfies(selfies)
+        for seflies in list(selfie_list):
+            assert selfies in mock_stoi
+
 
     def test_get_default_data_no_files_given(self):
 
