@@ -184,7 +184,7 @@ def handle_len(prompt, min_len, max_len):
     max_len += prompt_len
 
     if max_len < min_len:
-        max_len + 5
+        max_len += 5
         logger.debug(f"max_len < min_len; Setting max_len to {max_len}")
 
     logger.info(
