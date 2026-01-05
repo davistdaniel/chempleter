@@ -33,7 +33,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install chempleter
-        run: uv sync --dev --extra validation
+        run: uv sync --dev --extra validation --extra cpu
 
       - name: Run tests using pytest
         run: uv run pytest tests -v --cov=chempleter --cov-report=term-missing
