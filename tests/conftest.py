@@ -40,7 +40,7 @@ def sample_stoi_file(tmp_path,sample_selfies_csv):
     return stoi_file
 
 @pytest.fixture
-def sample_stoi(tmp_path,sample_stoi_file):
+def sample_stoi(sample_stoi_file):
     "create a temp selfies csv"
 
     with open(sample_stoi_file,"r") as f:
@@ -49,10 +49,21 @@ def sample_stoi(tmp_path,sample_stoi_file):
     return sample_stoi
 
 @pytest.fixture
-def sample_itos(tmp_path,sample_stoi):
+def sample_itos(sample_stoi):
     "create a temp selfies csv"
 
     return list(sample_stoi.keys())
+
+@pytest.fixture
+def sample_itos_file(tmp_path,sample_itos):
+    "create a temp selfies csv"
+
+    itos_file = tmp_path / "itos.json"
+
+    with open(itos_file,"w") as f:
+        json.dump(sample_itos,f)
+
+    return itos_file
 
 @pytest.fixture
 def sample_smiles_csv(tmp_path):
@@ -72,3 +83,7 @@ def sample_smiles_csv(tmp_path):
     smiles_df.to_csv(csv_path,index=False)
 
     return csv_path
+
+@pytest.fixture
+def device():
+    return "cpu"

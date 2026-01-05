@@ -2,6 +2,7 @@
 
 import pytest
 import torch
+import json
 import selfies as sf
 from rdkit import Chem
 from chempleter.model import ChempleterModel
@@ -14,6 +15,7 @@ from chempleter.inference import (
     extend,
     evolve,
     bridge,
+    _get_default_data
 )
 
 
@@ -167,4 +169,152 @@ class TestOutputMolecule:
         assert smiles == "CCOO"
         assert ignored_factor == 0.0
 
+class TestExtend:
+    """Test cases for extend function."""
 
+    @pytest.mark.inference
+    def test_extend_with_smiles(self,device):
+        """Test extend function with SMILES input."""
+        mol, smiles, selfies = extend(smiles="CCO", max_len=10,device=device)
+        assert mol is not None
+        assert isinstance(smiles, str)
+        assert isinstance(selfies, str)
+
+    @pytest.mark.inference
+    def test_extend_with_empty_smiles(self):
+        """Test extend function with empty SMILES."""
+        mol, smiles, selfies = extend(smiles="", max_len=10)
+        assert mol is not None
+        assert isinstance(smiles, str)
+        assert isinstance(selfies, str)
+
+    @pytest.mark.inference
+    def test_extend_with_selfies(self):
+        """Test extend function with SELFIES tokens."""
+        selfies_tokens = list(sf.split_selfies(sf.encoder("CCO")))
+        mol, smiles, selfies = extend(selfies=selfies_tokens, max_len=10)
+        assert mol is not None
+        assert isinstance(smiles, str)
+        assert isinstance(selfies, str)
+
+    @pytest.mark.inference
+    def test_extend_different_sampling_strategies(self):
+        """Test extend with different sampling strategies."""
+        strategies = ["greedy", "temperature", "top_k_temperature","unknown"] # unknown should fallback to greedy
+        for strategy in strategies:
+            mol, smiles, selfies = extend(
+                smiles="CCO",
+                max_len=10,
+                next_atom_criteria=strategy,
+                temperature=0.7,
+                k=10,
+            )
+            assert mol is not None
+            assert isinstance(smiles, str)
+            assert isinstance(selfies, str)
+
+class TestGenerationLoop:
+    """Test cases for generation_loop function."""
+
+    def test_generation_loop_extend(self, sample_stoi, device):
+        """Test generation loop for extend type."""
+        prompt = ["[START]", "[C]", "[C]"]
+        # Ensure model vocab size matches stoi
+        model = ChempleterModel(vocab_size=max(sample_stoi.values())+1, embedding_dim=64, hidden_dim=128, num_layers=2)
+        generated_ids = generation_loop(
+            generation_type="extend",
+            model=model,
+            prompt=prompt,
+            stoi=sample_stoi,
+            min_len=5,
+            max_len=10,
+            next_atom_criteria="greedy",
+            temperature=1.0,
+            k=10,
+            device=device,
+        )
+        assert isinstance(generated_ids, list)
+        assert len(generated_ids) >= len(prompt)
+
+    def test_generation_loop_bridge(self, sample_stoi, device):
+        """Test generation loop for bridge type."""
+        prompt = ["[START]", "[C]", "[MASK]", "[O]", "[BRIDGE]"]
+        # Ensure model vocab size matches stoi
+        model = ChempleterModel(vocab_size=max(sample_stoi.values())+1, embedding_dim=64, hidden_dim=128, num_layers=2)
+        generated_ids = generation_loop(
+            "bridge",
+            model,
+            prompt,
+            sample_stoi,
+            min_len=5,
+            max_len=10,
+            next_atom_criteria="greedy",
+            temperature=1.0,
+            k=10,
+            device=device,
+        )
+        assert isinstance(generated_ids, list)
+
+class TestEvolve:
+    """Test cases for evolve function."""
+
+    @pytest.mark.inference
+    def test_evolve_with_smiles(self,device):
+        """Test evolve function with SMILES input."""
+        mols, selfies_list, smiles_list = evolve(
+            smiles="CCO", max_len=5, n_evolve=2,device=device
+        )
+        assert isinstance(mols, list)
+        assert isinstance(selfies_list, list)
+        assert isinstance(smiles_list, list)
+        assert len(mols) > 0
+
+    @pytest.mark.inference
+    def test_evolve_with_empty_smiles(self,device):
+        """Test evolve function with empty SMILES."""
+        mols, selfies_list, smiles_list = evolve(smiles="", max_len=5, n_evolve=2,device=device)
+        assert isinstance(mols, list)
+        assert isinstance(selfies_list, list)
+        assert isinstance(smiles_list, list)
+        assert len(mols) > 0
+
+
+class TestBridge:
+    """Test cases for bridge function."""
+
+    @pytest.mark.inference
+    def test_bridge_with_fragments(self,device):
+        """Test bridge function with two fragments."""
+        frag1 = "c1ccccc1"
+        frag2 = "c1ccccc1"
+        mol, smiles, selfies = bridge(frag1_smiles=frag1, frag2_smiles=frag2,device=device)
+        assert mol is not None
+        assert isinstance(smiles, str)
+        assert isinstance(selfies, str)
+
+class TestGetDefaultData:
+
+    def test_get_default_data_no_files_given(self):
+
+        stoi, itos, model = _get_default_data("extend",model=None,stoi_file=None,itos_file=None)
+
+        assert type(stoi) is dict
+        assert type(itos) is list
+        assert type(model) is ChempleterModel
+
+        stoi, itos, model = _get_default_data("bridge",model=None,stoi_file=None,itos_file=None)
+
+        assert type(stoi) is dict
+        assert type(itos) is list
+        assert type(model) is ChempleterModel
+
+    def test_get_default_data_files_given(self,sample_stoi,sample_stoi_file,sample_itos_file):
+                
+        with open(sample_stoi_file,"r") as f:
+            stoi = json.load(f)
+
+        stoi, itos, model = _get_default_data("extend",model=ChempleterModel(vocab_size=len(sample_stoi)),stoi_file=sample_stoi_file,itos_file=sample_itos_file)
+
+        assert type(stoi) is dict
+        assert type(itos) is list
+        assert type(model) is ChempleterModel
