@@ -56,7 +56,7 @@ Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
         
         ``uvx --from chempleter chempleter-gui``
 
-    * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
+    * The very first start of the GUI on your device might be a bit slow. To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
     <div align="center">
     <h2> Or </h2>
