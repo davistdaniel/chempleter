@@ -1,0 +1,39 @@
+name : Test chempleter
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/**"
+  pull_request:
+
+jobs:
+  test:
+    name: Test chempleter using pytest
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: 
+          - "3.12"
+          - "3.13"
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv and set up python
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          version: "latest"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install chempleter
+        run: uv sync --dev --extra validation
+
+      - name: Run tests using pytest
+        run: uv run pytest tests -v --cov=chempleter --cov-report=term-missing
