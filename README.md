@@ -8,7 +8,9 @@
 
 <div align="center">
 
-![PyPI - Status](https://img.shields.io/pypi/status/chempleter) ![PyPI - Version](https://img.shields.io/pypi/v/chempleter) ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fdavistdaniel%2Fchempleter%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) ![PyPI - License](https://img.shields.io/pypi/l/chempleter) ![GitHub last commit](https://img.shields.io/github/last-commit/davistdaniel/chempleter)
+[![PyPI - Status](https://img.shields.io/pypi/status/chempleter)](https://pypi.org/project/chempleter) [![PyPI - Version](https://img.shields.io/pypi/v/chempleter)](https://pypi.org/project/chempleter) [![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fdavistdaniel%2Fchempleter%2Frefs%2Fheads%2Fmain%2Fpyproject.toml)](https://github.com/davistdaniel/chempleter/blob/main/pyproject.toml) [![PyPI - License](https://img.shields.io/pypi/l/chempleter)](https://github.com/davistdaniel/chempleter/blob/main/LICENSE) [![GitHub last commit](https://img.shields.io/github/last-commit/davistdaniel/chempleter)](https://github.com/davistdaniel/chempleter/commits/main/) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/davistdaniel/chempleter/test_chempleter.yml?label=Tests)](https://github.com/davistdaniel/chempleter/actions) [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/davistdaniel/chempleter/deploy_docs.yml?label=Docs)](https://github.com/davistdaniel/chempleter/actions)
+
+
 
 </div>
 
