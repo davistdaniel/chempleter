@@ -1,6 +1,6 @@
 import io
 import base64
-import json
+import logging
 import torch
 from nicegui import ui
 from chempleter.inference import handle_prompt, extend, evolve, bridge
@@ -13,11 +13,13 @@ from rdkit import Chem
 from importlib import resources
 from chempleter import __version__
 
+logger = logging.getLogger(__name__)
 
 def build_chempleter_ui():
     """
     Build Chempleter GUI using Nicegui. This fucntion also reads in the trained model, vocabulary files.
     """
+    logger.info("Starting Chempleter GUI...")
 
     # load data
     device = (
@@ -25,6 +27,8 @@ def build_chempleter_ui():
         if torch.accelerator.is_available()
         else "cpu"
     )
+
+    logger.info(f"Selected device : {device}")
 
     def _validate_smiles(smiles, frag1_smiles=None, frag2_smiles=None):
         try:

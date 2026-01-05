@@ -8,6 +8,8 @@ from pathlib import Path
 from importlib import resources
 from chempleter.model import ChempleterModel
 
+# logging setup
+logger = logging.getLogger(__name__)
 
 device = (
     torch.accelerator.current_accelerator().type
@@ -43,10 +45,10 @@ def _get_default_data(generation_type, model, stoi_file, itos_file):
         raise ValueError("Invalid generation type")
 
     if stoi_file is None:
-        logging.info("Using default stoi file")
+        logger.info("Using default stoi file")
         stoi_file = default_stoi_file
     if itos_file is None:
-        logging.info("Using default itos file")
+        logger.info("Using default itos file")
         itos_file = default_itos_file
 
     with open(stoi_file) as f:
@@ -55,7 +57,7 @@ def _get_default_data(generation_type, model, stoi_file, itos_file):
         itos = json.load(f)
 
     if model is None:
-        logging.info("Using default model checkpoint")
+        logger.info("Using default model checkpoint")
         model = ChempleterModel(vocab_size=len(stoi))
         checkpoint = torch.load(
             default_checkpoint_file, map_location=device, weights_only=True
@@ -93,7 +95,7 @@ def handle_prompt(
             stoi = json.load(f)
 
     if selfies is not None:
-        logging.info(f"Input SELFIES: {smiles}")
+        logger.info(f"Input SELFIES: {smiles}")
         for token in selfies:
             if token not in stoi.keys():
                 raise ValueError("Invalid SELFIES Token: ", token)
@@ -106,7 +108,7 @@ def handle_prompt(
             frag1_selfie = sf.encoder(frag1_smiles, strict=False)
             frag2_selfie = sf.encoder(frag2_smiles, strict=False)
         except sf.EncoderError as e:
-            logging.error("SMILES encode error")
+            logger.error("SMILES encode error")
             raise sf.EncoderError(e)
 
         frag1_symbols = list(sf.split_selfies(frag1_selfie))
@@ -116,26 +118,26 @@ def handle_prompt(
         return prompt, frag1_symbols, frag2_symbols
     else:
         if smiles.strip().replace(" ", "") != "":
-            logging.info(f"Input SMILES: {smiles}")
+            logger.info(f"Input SMILES: {smiles}")
             try:
                 _ = sf.encoder(smiles)
                 test_smiles = smiles
             except sf.EncoderError as e:
-                logging.error("SMILES encode error.")
+                logger.error("SMILES encode error.")
                 if alter_prompt:
-                    logging.debug("alter_prompt is True, altering prompt.")
+                    logger.debug("alter_prompt is True, altering prompt.")
                     # start removing characters from end.
                     for i in range(len(smiles), 0, -1):
                         try:
                             test_smiles = smiles[:i]
-                            logging.info(f"Altered SMILES: {test_smiles}")
+                            logger.info(f"Altered SMILES: {test_smiles}")
                             _ = sf.encoder(test_smiles)
                             tail = smiles[i:]
                             if len(tail) > 0:
-                                logging.info(f"Ingored string: {tail}")
+                                logger.info(f"Ingored string: {tail}")
                             break
                         except sf.EncoderError:
-                            logging.error("SMILES encode error.")
+                            logger.error("SMILES encode error.")
                             continue
                     raise sf.EncoderError(e)
                 else:
@@ -145,7 +147,7 @@ def handle_prompt(
                 sf.split_selfies(sf.encoder(test_smiles, strict=False))
             )
         else:
-            logging.debug(
+            logger.debug(
                 "No input for smiles or selfies, using default prompt : [START]"
             )
             prompt = ["[START]"]
@@ -170,10 +172,10 @@ def handle_len(prompt, min_len, max_len):
 
     if min_len is None:
         min_len = prompt_len + 2
-        logging.debug(f"min_len is None. Setting min_len to {min_len}")
+        logger.debug(f"min_len is None. Setting min_len to {min_len}")
 
     if min_len < prompt_len:
-        logging.warning(
+        logger.warning(
             f"min_len ({min_len}) < prompt length ({prompt_len}). "
             f"Setting min_len to {prompt_len + 2}"
         )
@@ -183,9 +185,9 @@ def handle_len(prompt, min_len, max_len):
 
     if max_len < min_len:
         max_len + 5
-        logging.debug(f"max_len < min_len; Setting max_len to {max_len}")
+        logger.debug(f"max_len < min_len; Setting max_len to {max_len}")
 
-    logging.info(
+    logger.info(
         f"min_len = {min_len}, max_len = {max_len}, prompt_len = {prompt_len}."
     )
     return min_len, max_len
@@ -256,13 +258,13 @@ def output_molecule(
             "".join(frag1_symbols) + generated_selfies + "".join(frag2_symbols)
         )
 
-    logging.info(f"Generated SELFIE: {generated_selfies}")
+    logger.info(f"Generated SELFIE: {generated_selfies}")
     generated_smiles = sf.decoder(generated_selfies)
-    logging.info(f"Generated SMILES from decoding: {generated_smiles}")
+    logger.info(f"Generated SMILES from decoding: {generated_smiles}")
     ignored_token_factor = (
         len(generated_selfies) - len(sf.encoder(generated_smiles))
     ) / len(generated_selfies)
-    logging.info(
+    logger.info(
         f"Proportion of generated tokens ignored by SELFIES decoding : {ignored_token_factor}"
     )
 
@@ -279,6 +281,7 @@ def generation_loop(
     next_atom_criteria,
     temperature,
     k,
+    device
 ):
     """
     This is the main generation loop, which uses the model to produce tokens.
@@ -410,6 +413,7 @@ def extend(
             next_atom_criteria,
             temperature,
             k,
+            device
         )
         return generated_ids
 
@@ -439,7 +443,7 @@ def extend(
     while generated_smiles == smiles and len(prompt) > 0 and retry_n <= max_retries:
         if alter_prompt:
             prompt = prompt[:-1]
-            logging.info(f"Retry {retry_n} with altered prompt : {prompt}")
+            logger.info(f"Retry {retry_n} with altered prompt : {prompt}")
             generated_ids = _generate_from(prompt=prompt)
             generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
                 "extend", generated_ids, itos
@@ -448,7 +452,7 @@ def extend(
         elif randomise_prompt:
             try:
                 temp_mol = Chem.MolFromSmiles(smiles)
-                logging.info(
+                logger.info(
                     "Same molecule as input, trying to randomise input smiles."
                 )
                 prompt = handle_prompt(
@@ -457,17 +461,17 @@ def extend(
                     stoi,
                     alter_prompt,
                 )
-                logging.info(f"Retry {retry_n} with randomised prompt : {prompt}")
+                logger.info(f"Retry {retry_n} with randomised prompt : {prompt}")
                 generated_ids = _generate_from(prompt=prompt)
                 generated_smiles, generated_selfies, ingored_token_factor = (
                     output_molecule("extend", generated_ids, itos)
                 )
                 retry_n += 1
             except Exception as e:
-                logging.error(f"Randomisation failed : {e}")
+                logger.error(f"Randomisation failed : {e}")
                 break
         else:
-            logging.warning(
+            logger.warning(
                 "Same molecule as prompt. This molecule cannot be extended. Try again with a different prompt."
             )
             break
@@ -555,7 +559,7 @@ def evolve(
             randomise_prompt=False,
         )
         if current_smiles == generated_smiles_list[idx]:
-            logging.warning(
+            logger.warning(
                 f"Same molecule detected, early stop at evolution step : {idx}"
             )
             break
@@ -578,7 +582,7 @@ def bridge(
     temperature=1,
     k=10,
     next_atom_criteria="temperature",
-    device=device,
+    device=device
 ):
     def _generate_from(prompt):
         generated_ids = generation_loop(
@@ -591,6 +595,7 @@ def bridge(
             next_atom_criteria=next_atom_criteria,
             temperature=temperature,
             k=k,
+            device=device
         )
         return generated_ids
 
@@ -620,12 +625,12 @@ def bridge(
     while generated_smiles == frag1_smiles and retry_n <= max_retries:
         try:
             temp_mol = Chem.MolFromSmiles(frag1_smiles)
-            logging.info("Same molecule as input, trying to randomise input smiles.")
+            logger.info("Same molecule as input, trying to randomise input smiles.")
             prompt, frag1_symbols, frag2_symbols = handle_prompt(
                 frag1_smiles=Chem.MolToSmiles(temp_mol, canonical=False, doRandom=True),
                 frag2_smiles=frag2_smiles,
             )
-            logging.info(f"Retry {retry_n} with randomised prompt : {prompt}")
+            logger.info(f"Retry {retry_n} with randomised prompt : {prompt}")
             generated_ids = _generate_from(prompt=prompt)
             generated_smiles, generated_selfies, ingored_token_factor = output_molecule(
                 "bridge",
@@ -636,7 +641,7 @@ def bridge(
             )
             retry_n += 1
         except Exception as e:
-            logging.error(f"Randomisation failed : {e}")
+            logger.error(f"Randomisation failed : {e}")
             break
     m = Chem.MolFromSmiles(generated_smiles)
     if m is None:
