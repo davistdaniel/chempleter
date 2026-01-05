@@ -40,6 +40,10 @@ cpu = [
 gpu128 = [
   "torch>=2.9.1",
 ]
+validation = [
+    "matplotlib>=3.10.8",
+    "tqdm>=4.67.1",
+]
 
 [tool.uv.sources]
 torch = [
@@ -83,7 +87,6 @@ package-data = {"chempleter" = ["data/*"]}
 dev = [
     "ipykernel>=7.1.0",
     "jupyter>=1.1.1",
-    "matplotlib>=3.10.8",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.10",

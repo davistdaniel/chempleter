@@ -12,9 +12,7 @@
 
 </div>
 
-
-Chempleter is lightweight generative model which utlises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
-It accepts SMILES notation as input and enforces chemical syntax validity using SELFIES for the generated molecules. 
+Chempleter is a lightweight generative sequence model based on a multi-layer gated recurrent units (GRU) to predict syntactically valid extensions of a provided molecular fragment or bridge two molecules/molecular fragments. It operates on SELFIES token sequences, ensuring syntactically valid molecular generation and accepts SMILES notation as input. Due to its simple recurrent architecture and small vocabulary, the model runs efficiently on both CPUs and GPUs.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/davistdaniel/chempleter/refs/heads/main/docs/source/images/extend_demo.gif" alt="Demo Gif" width="400">
@@ -27,7 +25,7 @@ It accepts SMILES notation as input and enforces chemical syntax validity using 
     
     * It can be used to generate a wide range of structural analogs which the share same core structure (by changing the sampling temperature) or decorate a core scaffold iteratively (by increasing generated token lengths)
 
-    * It can be used to bridge two molecules/molecular fragments.
+    * It can be used to bridge two molecules/molecular fragments to explore linker chemistry.
 
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
@@ -39,14 +37,15 @@ See [chempleter in action.](https://davistdaniel.github.io/chempleter/demo.html)
 * Python ">=3.12"
 * [uv](https://docs.astral.sh/uv/) (optional but recommended)
 
+## Installation
+
+See detailed [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
+
 ## Getting started
 
 Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 
 ## Quick start
-
-You can find more information about installing Chempleter (also via pip) in [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
-
 
 - ### Run the GUI directly without installing (via uv):
 
@@ -56,6 +55,12 @@ You can find more information about installing Chempleter (also via pip) in [ins
     * On linux/MacOS:
         
         ``uvx --from chempleter chempleter-gui``
+
+    * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
+
+    <div align="center">
+    <h2> Or </h2>
+    </div>
 
 - ### Install using uv
 
@@ -71,9 +76,10 @@ You can find more information about installing Chempleter (also via pip) in [ins
 
     * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
-    <div align="center">
-    <h2> Or </h2>
-    </div>
+
+- ### Run GUI after installation
+
+    ``uv run chempleter-gui``
     
  - ### Use as a python library
 
@@ -94,6 +100,9 @@ You can find more information about installing Chempleter (also via pip) in [ins
         ```
     * For details on available paramenters and inference functions, see [generating molecules](https://davistdaniel.github.io/chempleter/usage.html#generating-molecules).
 
+### Model history and validation
+
+See [model validation reports](https://davistdaniel.github.io/chempleter/validation.html).
 
 ### Project structure
 * src/chempleter: Contains python modules relating to different functions.
