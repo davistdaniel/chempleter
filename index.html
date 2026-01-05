@@ -40,12 +40,12 @@
             
   <section id="welcome-to-chempleter">
 <h1>Welcome to Chempleter<a class="headerlink" href="#welcome-to-chempleter" title="Link to this heading">¶</a></h1>
-<p>Chempleter is a lightweight generative model which utilises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment.
+<p>Chempleter is a lightweight generative model which utilises a simple Gated Recurrent Unit (GRU) to predict syntactically valid extensions of a provided molecular fragment or bridge two molecules/molecular fragments.
 It accepts <a class="reference external" href="https://en.wikipedia.org/wiki/Simplified_Molecular_Input_Line_Entry_System">SMILES</a> notation as input and enforces chemical syntax validity using <a class="reference external" href="https://selfies.readthedocs.io/en/latest/">SELFIES</a> for the generated molecules.
 The library also has an optional graphical user interface to interact with the model.</p>
 <a class="reference internal image-reference" href="_images/extend_demo.gif"><img alt="_images/extend_demo.gif" class="align-center" src="_images/extend_demo.gif" style="width: 620.1999999999999px; height: 617.4px;" />
 </a>
-<p>See <a class="reference internal" href="demo.html"><span class="doc">chempleter in action</span></a> or to get started, see <a class="reference internal" href="usage.html"><span class="doc">getting started</span></a>.</p>
+<p>See <a class="reference internal" href="demo.html"><span class="doc">chempleter in action</span></a> or to get started, see <a class="reference internal" href="usage.html"><span class="doc">getting started</span></a>. Model validation reports can be viewed in <a class="reference internal" href="validation.html"><span class="doc">model history</span></a>.</p>
 <section id="what-can-chempleter-do">
 <h2>What can chempleter do?<a class="headerlink" href="#what-can-chempleter-do" title="Link to this heading">¶</a></h2>
 <ul class="simple">
@@ -54,6 +54,13 @@ The library also has an optional graphical user interface to interact with the m
 <li><p>It can be used to bridge two molecules/molecular fragments.</p></li>
 <li><p>In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more “goal-directed” predictions.</p></li>
 </ul>
+<p>Chempleter operates internally on SELFIES token sequences, which provide a robust representation of molecular structures with guaranteed syntactic validity.
+While Chempleter accepts molecular input and outputs generated molecules in standard SMILES notation, all training and inference is is performed in SELFIES space,
+ensuring that generated molecules conform to chemical syntax.</p>
+<p>Due to its simple recurrent architecture and small vocabulary size, Chempleter is computationally efficient and runs comfortably on both CPUs and GPUs.
+However, this also has limitations. In particular, the GRU-based architecture may struggle to model long-range structural dependencies, and the model does not currently optimize for chemical properties,
+biological activity, or synthetic feasibility. Generated molecules are guaranteed to be syntactically valid but may require additional filtering or scoring to identify chemically meaningful candidates.</p>
+<p>Overall, Chempleter prioritizes an approach which is easier to understand, train and deploy making it well suited for rapid prototyping and educational purposes in molecular machine learning.</p>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -86,6 +93,7 @@ The library also has an optional graphical user interface to interact with the m
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="demo.html">Chempleter modes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Model history</a></li>
 </ul>
 
 
