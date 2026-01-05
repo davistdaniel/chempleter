@@ -249,7 +249,7 @@ def output_molecule(
         [
             itos[idx]
             for idx in generated_ids
-            if itos[idx] not in ["[END]", "[START]", "[PAD]", ["MASK"], ["BRIDGE"]]
+            if itos[idx] not in ["[END]", "[START]", "[PAD]", "[MASK]", "[BRIDGE]"]
         ]
     )
 
