@@ -41,6 +41,10 @@ Prequisites
     
     By default, the CPU version of pytorch will be installed and used by Chempleter. 
     Alternatively, you can install a PyTorch version compatible with your CUDA version by following the `Pytorch documentation <https://pytorch.org/get-started/locally/>`_.
+    To use the validation module of chempleter, you must install matplotlib and tqdm. In this case, you must install chempleter with:
+
+    ``uv pip install "chempleter[validation]"``
+
 
 
 Starting Chempleter's GUI
