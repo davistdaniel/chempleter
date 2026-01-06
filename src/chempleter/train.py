@@ -6,6 +6,8 @@ from torch import nn
 from pathlib import Path
 from torch.nn.utils import clip_grad_norm_
 
+# logging setup
+logger = logging.getLogger(__name__)
 
 device = (
     torch.accelerator.current_accelerator().type
@@ -142,11 +144,11 @@ def start_training(
     if resume is True:
         checkpoint_path = Path(checkpoint_path)
         if checkpoint_path.exists():
-            logging.info(f"Loading checkpoint from {checkpoint_path} to resume training.")
+            logger.info(f"Loading checkpoint from {checkpoint_path} to resume training.")
             checkpoint = torch.load(checkpoint_path, map_location=device)
             if "model_state_dict" in checkpoint:
                 model.load_state_dict(checkpoint["model_state_dict"])
-                logging.info("Loaded model state dict from checkpoint.")
+                logger.info("Loaded model state dict from checkpoint.")
             else:
                 raise ValueError("model_state_dict not found in checkpoint file.")
             
@@ -156,19 +158,19 @@ def start_training(
                     for k, v in state.items():
                         if torch.is_tensor(v):
                             state[k] = v.to(device)
-                logging.info(f"Loaded optimizer state dict from checkpoint and moved to device : {device}.")
+                logger.info(f"Loaded optimizer state dict from checkpoint and moved to device : {device}.")
                 
             if "scheduler_state_dict" in checkpoint:
                 scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-                logging.info("Loaded scheduler state dict from checkpoint.")
+                logger.info("Loaded scheduler state dict from checkpoint.")
             
             start_epoch = checkpoint['epoch'] + 1 if "epoch" in checkpoint else 0
             last_loss = checkpoint['loss'] if "loss" in checkpoint else float("inf")
-            logging.info(f"Set start_epoch : {start_epoch} and last_loss: {last_loss} from checkpoint.")
+            logger.info(f"Set start_epoch : {start_epoch} and last_loss: {last_loss} from checkpoint.")
 
             if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
                 scheduler.best = last_loss
-                logging.info(f"Set scheduler best loss to last_loss: {last_loss} from checkpoint.")
+                logger.info(f"Set scheduler best loss to last_loss: {last_loss} from checkpoint.")
         else:
             raise FileNotFoundError(f"checkpoint file not found at path: {str(checkpoint_path)}")
         

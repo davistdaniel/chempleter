@@ -9,6 +9,8 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
+# logging setup
+logger = logging.getLogger(__name__)
 
 class ChempleterDataset(Dataset):
     """
@@ -74,7 +76,7 @@ class ChempleterRandomisedSmilesDataset(Dataset):
                     Chem.MolToSmiles(molecule, canonical=False, doRandom=True)
                 )
             except Exception as e:
-                logging.error(f"SELFIES encoding error for randomised SMILES: {e}")
+                logger.error(f"SELFIES encoding error for randomised SMILES: {e}")
         else:
             molecule_in_selfies = sf.encoder(molecule_in_smiles)
 
@@ -129,7 +131,7 @@ class ChempleterRandomisedBridgeDataset(Dataset):
                 )
             except Exception as e:
                 molecule_in_selfies = sf.encoder(molecule_in_smiles)
-                logging.error(f"SELFIES encoding error for randomised SMILES: {e}")
+                logger.error(f"SELFIES encoding error for randomised SMILES: {e}")
         else:
             molecule_in_selfies = sf.encoder(molecule_in_smiles)
 
