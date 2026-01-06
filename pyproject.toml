@@ -1,6 +1,6 @@
 [project]
 name = "chempleter"
-version = "0.1.0b6"
+version = "0.1.0b7"
 description = "A lightweight generative model that extends SMILES fragments into syntactically valid molecules"
 readme = "README.md"
 authors = [
@@ -93,6 +93,5 @@ dev = [
     "sphinx>=8.2.3",
     "sphinx-copybutton>=0.5.2",
     "sphinx-design>=0.6.1",
-    "tqdm>=4.67.1",
     "twine>=6.2.0",
 ]

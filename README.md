@@ -68,20 +68,16 @@ Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 
     ``uv pip install chempleter``
 
-- ### Use the GUI
+- ### Run GUI after installation
 
-    * To start the Chempleter GUI after installing, execute in a terminal:
-        
-        ``uv run chempleter-gui``
+    ``uv run chempleter-gui``
+
+- ### Use the GUI
 
     * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
 
     * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
-
-- ### Run GUI after installation
-
-    ``uv run chempleter-gui``
     
  - ### Use as a python library
 

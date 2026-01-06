@@ -474,7 +474,6 @@ dev = [
     { name = "sphinx" },
     { name = "sphinx-copybutton" },
     { name = "sphinx-design" },
-    { name = "tqdm" },
     { name = "twine" },
 ]
 
@@ -503,7 +502,6 @@ dev = [
     { name = "sphinx", specifier = ">=8.2.3" },
     { name = "sphinx-copybutton", specifier = ">=0.5.2" },
     { name = "sphinx-design", specifier = ">=0.6.1" },
-    { name = "tqdm", specifier = ">=4.67.1" },
     { name = "twine", specifier = ">=6.2.0" },
 ]
 
