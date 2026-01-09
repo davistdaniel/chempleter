@@ -104,7 +104,7 @@ def handle_prompt(
         prompt = ["[START]"] + selfies
 
         return prompt
-    elif frag1_smiles is not None and frag1_smiles is not None:
+    elif frag1_smiles is not None and frag2_smiles is not None:
         try:
             frag1_selfie = sf.encoder(frag1_smiles, strict=False)
             frag2_selfie = sf.encoder(frag2_smiles, strict=False)
@@ -662,11 +662,11 @@ def decorate(smiles, atom_idx, temperature=1, next_atom_criteria="top_k_temperat
         raise ValueError("Invalid molecule")
     
     if atom_idx>initial_mol.GetNumAtoms():
-        raise ValueError("Invalid attachment index")
+        raise ValueError(f"Invalid attachment index : attachment index : {atom_idx} is larger than the total number of atoms.")
     
     attachment_atom = initial_mol.GetAtomWithIdx(atom_idx)
     if attachment_atom.GetValence(Chem.ValenceType.EXPLICIT) >= Chem.GetPeriodicTable().GetDefaultValence(attachment_atom.GetSymbol()):
-        raise ValueError(f"Atom {atom_idx} is at max valency. Cannot decorate.")
+        raise ValueError(f"Atom {atom_idx} ({attachment_atom.GetSymbol()}) is at max valency. Cannot decorate.")
 
     
     rearranged_mol_smiles = Chem.MolToSmiles(initial_mol,rootedAtAtom=atom_idx,canonical=False)
@@ -685,19 +685,20 @@ def decorate(smiles, atom_idx, temperature=1, next_atom_criteria="top_k_temperat
     
     if Chem.MolToSmiles(mol_reordered,canonical=True) == Chem.MolToSmiles(m,canonical=True):
         # m, generated_smiles, generated_selfies = bridge(frag1_smiles=reordered_smiles,frag2_smiles="C")
-        logger.warning("Same molecule as input. Trying again with only attachment atom as prompt.")
-        # attachment_atom_nl = [initial_mol.GetAtomWithIdx(atom_idx-1),initial_mol.GetAtomWithIdx(atom_idx+1),initial_mol.GetAtomWithIdx(atom_idx)]
-        # attachment_atom_symbol_nl = [i.GetSymbol() for i in attachment_atom_nl]
-        # selfies = [sf.encoder(i) for i in attachment_atom_symbol_nl]
-        logger.info("Decorating with full input failed, trying with contextual prompting.")
+        logger.warning("Decoration with full input failed, try with contextual prompting.")
         for radius in [2,1,0]:
-            logger.info(f"Trying with a context within radius :{radius} of desired attachment atom.")
+            logger.info(f"Try to extract neighbourhood within radius: {radius} of desired attachment atom.")
             if radius == 0:
+                logger.warning("Decoration with contextual prompting failed, using only the attachment atom as prompt.")
                 context_smiles = initial_mol.GetAtomWithIdx(atom_idx).GetSymbol()
-            env = Chem.FindAtomEnvironmentOfRadiusN(initial_mol, radius, atom_idx)
-            amap = {}
-            submol = Chem.PathToSubmol(initial_mol, env, atomMap=amap)
-            context_smiles = Chem.MolToSmiles(submol) # e.g., "CC(C)" instead of just "C"
+            env = Chem.FindAtomEnvironmentOfRadiusN(mol=initial_mol, radius=radius, rootedAtAtom=atom_idx,enforceSize=True)
+            if not env:
+                continue
+            submol = Chem.PathToSubmol(initial_mol, env, atomMap={})
+            context_smiles = Chem.MolToSmiles(submol,kekuleSmiles=True)
+            if context_smiles == reordered_smiles:
+                logger.warning("Context smiles same as reordered smiles, skipping.")
+                continue
             if Chem.MolFromSmiles(context_smiles) is not None:
                 logger.info(f"Valid context SMILES found : {context_smiles} at radius : {radius}")
                 break
@@ -706,13 +707,15 @@ def decorate(smiles, atom_idx, temperature=1, next_atom_criteria="top_k_temperat
         logger.info(f"Try extending with extend function, input smiles: {context_smiles}")
         m1, _, _ = extend(
             smiles=context_smiles, 
-            randomise_prompt=True, 
+            randomise_prompt=True,
             temperature=temperature
         )
 
-        attachment_indices = list(range(m1.GetNumAtoms()))
-        random.shuffle(attachment_indices)
-        for attach_idx in attachment_indices:
+        logger.info("Attach decoration to the molecule at desired attachment atom.")
+        deco_attachment_indices = list(range(m1.GetNumAtoms())) # possible attachment points in the decoration
+        random.shuffle(deco_attachment_indices)
+        
+        for attach_idx in deco_attachment_indices:
             try:
                 combined_mol = RWMol(CombineMols(initial_mol, m1))
                 attach_idx_combined_mol = initial_mol.GetNumAtoms() + attach_idx
@@ -725,7 +728,7 @@ def decorate(smiles, atom_idx, temperature=1, next_atom_criteria="top_k_temperat
                 generated_selfies = sf.encoder(generated_smiles,strict=False)
                 return m2, generated_smiles,generated_selfies
             except Exception as e:
-                logger.error(f"Failed, trying with a different_attachment_index : {e}")
+                logger.error(f"Failed due to : {e}, trying with a different attachment index.")
         
         raise ValueError("Decoration failed.")
     
