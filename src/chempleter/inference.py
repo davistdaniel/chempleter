@@ -695,7 +695,7 @@ def decorate(smiles, atom_idx, temperature=1, next_atom_criteria="top_k_temperat
             if not env:
                 continue
             submol = Chem.PathToSubmol(initial_mol, env, atomMap={})
-            context_smiles = Chem.MolToSmiles(submol,kekuleSmiles=True)
+            context_smiles = Chem.MolToSmiles(submol,kekuleSmiles=False)
             if context_smiles == reordered_smiles:
                 logger.warning("Context smiles same as reordered smiles, skipping.")
                 continue
