@@ -13,7 +13,6 @@ dependencies = [
     "pathlib>=1.0.1",
     "rdkit>=2025.9.3",
     "selfies>=2.2.0",
-    "torch>=2.9.1",
 ]
 
 classifiers = [
@@ -48,7 +47,7 @@ validation = [
 [tool.uv.sources]
 torch = [
   { index = "pytorch-cpu" , extra = "cpu"},
-  { index = "pytorch-cu128", extra = "gpu128" },
+  { index = "pytorch-cu128", extra = "gpu128"}
 ]
 
 [tool.uv]
