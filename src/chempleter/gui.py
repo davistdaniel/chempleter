@@ -324,9 +324,14 @@ def build_chempleter_ui():
 
     def handle_generation_type_change():
         if generation_type_radio.value == "Bridge":
-            help_label.set_text(
-                "Two molecular fragments will be bridged. Bridge will be highlighted in the output."
-            )
+            help_expand.set_text("Bridge")
+            help_label.set_content("""
+                                   <b>Bridge</b>
+                                   
+                                   - Two molecular fragments will be bridged. Bridge will be highlighted in the output. Enter two valid SMILES to get started.
+                                   
+                                   """)
+
             smiles_input2.set_visibility(True)
             length_slider.disable()
             alter_prompt_checkbox.disable()
@@ -334,6 +339,14 @@ def build_chempleter_ui():
             atom_idx_select.set_visibility(False)
             atom_idx_label.set_visibility(False)
         elif generation_type_radio.value == "Extend":
+            help_expand.set_text("Bridge")
+            help_label.set_content("""
+                                    Click on Generate to start generating molecules.<br>
+                                    
+                                    <b>Extend</b>
+
+                                    - Input molecular fragment will be extended. Input molecular fragment will be highlighted in the output.
+                                    """)
             length_slider.enable()
             alter_prompt_checkbox.enable()
             smiles_input2.set_visibility(False)
@@ -341,9 +354,13 @@ def build_chempleter_ui():
             atom_idx_select.set_visibility(False)
             atom_idx_label.set_visibility(False)
         elif generation_type_radio.value == "Evolve":
-            help_label.set_text(
-                "Input molecular fragment will be evolved. New fragments added at each evolution step will be highlighted in the output."
-            )
+            help_expand.set_text("Evolve")
+            help_label.set_content("""
+                                   <b>Evolve</b>
+                                   
+                                   - Input molecular fragment will be evolved. New fragments added at each evolution step will be highlighted in the output.
+                                   
+                                   """)
             length_slider.enable()
             alter_prompt_checkbox.disable()
             smiles_input2.set_visibility(False)
@@ -352,11 +369,18 @@ def build_chempleter_ui():
             atom_idx_label.set_visibility(False)
 
         elif generation_type_radio.value == "Decorate":
-            help_label.set_text(
-                """Input molecular fragment will be decorated at the selected atom index. Input molecular fragment will be highlighted in the output. 
-                Input the molecule you want to decorate as SMILES and click on GENERATE.
-                This will draw the input molecule and populate the atom index dropdown. Select the atom index to attach the decoration to and click on GENERATE again."""
-            )
+
+            help_expand.set_text("Decorate")
+
+            help_label.set_content("""
+                                   <b>Decorate</b>
+                                   
+                                   - Input molecular fragment will be decorated at the selected atom index. Input molecular fragment will be highlighted in the output. 
+                                   - Input the molecule you want to decorate as SMILES and click on GENERATE.
+                                   - This will draw the input molecule with indices and populate the atom index dropdown. Select the atom index to attach the decoration to and click on GENERATE again.
+                                   
+                                   """)
+
             length_slider.disable()
             alter_prompt_checkbox.disable()
             smiles_input2.set_visibility(False)
@@ -370,8 +394,16 @@ def build_chempleter_ui():
     with ui.column().classes("w-full min-h-screen items-center overflow-auto py-8"):
         with ui.row(wrap=False).classes("w-128 justify-center"):
             with ui.link(target="https://github.com/davistdaniel/chempleter"):
-                ui.image(logo_path).classes("w-64")
+                ui.image(logo_path).classes("w-32")
+        with ui.row().classes("w-128 justify-center"):
+            with ui.expansion("Extend",icon="help").classes("w-128") as help_expand:
+                help_label = ui.markdown("""
+                                        Click on Generate to start generating molecules.<br>
+                                        
+                                        <b>Extend</b>
 
+                                        - Input molecular fragment will be extended. Input molecular fragment will be highlighted in the output.
+                                        """)
         with ui.card().tight():
             with ui.row(wrap=False).classes("w-128 justify-center"):
                 smiles_input = ui.input(
@@ -418,9 +450,6 @@ def build_chempleter_ui():
                 ui.chip("Smaller")
                 length_slider = ui.slider(min=0.1, max=1, step=0.05, value=0.5)
                 ui.chip("Larger")
-
-        with ui.row().classes("w-128 justify-center"):
-            help_label = ui.label("Click on Generate to start generating molecules. Input molecular fragment will be extended. Input molecular fragment will be highlighted in the output.")
 
         with ui.row().classes("w-128 justify-center"):
             generate_button = ui.button("Generate", on_click=show_generated_molecule)
