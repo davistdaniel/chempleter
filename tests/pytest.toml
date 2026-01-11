@@ -1,4 +1,0 @@
-[pytest]
-markers = [
-    "inference: slow inference tests (deselect with '-m \"not inference\"')",
-]
