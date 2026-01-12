@@ -30,7 +30,9 @@ Generating molecules
 ----------------------------------------
 
 * Chempleter accepts a valid SMILES notation for a molecule/molecular fragment. If an initial input is not provided, chempleter generates a random molecule.
-* There are two main inference functions:
+* There are four main inference functions:
+
+.. _extend-heading:
 
     * ``extend``:
 
@@ -45,6 +47,8 @@ Generating molecules
         .. image::
             images/extend_example.png
             :align: center
+
+.. _evolve-heading:
             
     * ``evolve``:
 
@@ -62,6 +66,8 @@ Generating molecules
             images/evolve_example.png
             :align: center
 
+.. _bridge-heading:
+
     * ``bridge``:
 
         Description: Takes two starting molecular fragments (in SMILES notation) and uses the GRU model to predict a bridge between them.
@@ -72,6 +78,23 @@ Generating molecules
 
         .. image::
             images/bridge_example.png
+            :align: center
+
+.. _decorate-heading:
+
+    * ``decorate``:
+
+        Description: Takes a complete molecule (SMILES) and adds a substituent at a chosen atom index. The method uses the trained model to grow fragments from the selected atom, effectively “decorating” the scaffold.
+
+        Behaviour: Validates the molecule and attachment atom, reorders atoms so that the target atom is treated as the growth point,
+        and attempts generative extension. If direct decoration fails or results in no change, it progressively switches to contextual 
+        prompting based on the local atomic environment. In the final fallback case, only the attachment atom itself may be used as the prompt, 
+        meaning the model no longer conditions on the full molecular context. It then attaches a generated fragment to the specified atom. 
+        
+        An example using ``Decorate`` on pyridine (c1ccncc1) to introduce unconventional substituents:
+
+        .. image::
+            images/decorate_example.png
             :align: center
 
 
@@ -128,6 +151,18 @@ Chempleter can be used programmatically to extend or iteratively evolve molecule
         frag1_smiles="c1ccccc1",frag2_smiles="c1ccncc1")
 
     print(generated_smiles)
+
+* To decorate a molecule once at a specified atom index, use ``chempleter.inference.decorate``:
+
+  .. code-block:: python
+
+    from chempleter.inference import decorate
+
+    generated_mol, generated_smiles, generated_selfies = decorate(
+        smiles="c1cccnc1", atom_idx = 2
+    )
+
+     print(generated_smiles)
 
 * Options
 

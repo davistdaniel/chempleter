@@ -2,31 +2,11 @@
 
 __version__ = "0.1.0b7"
 
-from pathlib import Path
 import logging
 
 # logging setup
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(filename)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s",
 )
-
-
-def start_experiment(experiment_name, working_dir=None):
-    """
-    This function makes a folder to save processed files in.
-
-    :param experiment_name: Description
-    :param working_dir: Description
-    """
-
-    if not working_dir:
-        working_dir = Path().cwd() / experiment_name
-    else:
-        working_dir = Path(working_dir) / experiment_name
-
-    # make dir
-    working_dir.mkdir(parents=True, exist_ok=True)
-
-    return working_dir

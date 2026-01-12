@@ -4,7 +4,6 @@ import pytest
 import torch
 import json
 import selfies as sf
-from rdkit import Chem
 from chempleter.model import ChempleterModel
 from chempleter.inference import (
     handle_prompt,
@@ -15,7 +14,8 @@ from chempleter.inference import (
     extend,
     evolve,
     bridge,
-    _get_default_data
+    _get_default_data,
+    decorate
 )
 
 
@@ -92,7 +92,6 @@ class TestHandleLen:
     def test_handle_len_max_less_than_min(self):
         """Test handling length when max_len < min_len."""
         prompt = ["[START]", "[C]"]
-        prompt_len = len(prompt)
         min_len, max_len = handle_len(prompt, min_len=10, max_len=5)
         assert min_len == 10
         assert max_len == len(prompt)+5+5
@@ -172,7 +171,7 @@ class TestOutputMolecule:
 class TestExtend:
     """Test cases for extend function."""
 
-    @pytest.mark.inference
+     
     def test_extend_with_smiles(self,device):
         """Test extend function with SMILES input."""
         mol, smiles, selfies = extend(smiles="CCO", max_len=10,device=device)
@@ -180,7 +179,7 @@ class TestExtend:
         assert isinstance(smiles, str)
         assert isinstance(selfies, str)
 
-    @pytest.mark.inference
+     
     def test_extend_with_empty_smiles(self):
         """Test extend function with empty SMILES."""
         mol, smiles, selfies = extend(smiles="", max_len=10)
@@ -188,7 +187,7 @@ class TestExtend:
         assert isinstance(smiles, str)
         assert isinstance(selfies, str)
 
-    @pytest.mark.inference
+     
     def test_extend_with_selfies(self):
         """Test extend function with SELFIES tokens."""
         selfies_tokens = list(sf.split_selfies(sf.encoder("CCO")))
@@ -197,7 +196,7 @@ class TestExtend:
         assert isinstance(smiles, str)
         assert isinstance(selfies, str)
 
-    @pytest.mark.inference
+     
     def test_extend_different_sampling_strategies(self):
         """Test extend with different sampling strategies."""
         strategies = ["greedy", "temperature", "top_k_temperature","unknown"] # unknown should fallback to greedy
@@ -258,7 +257,7 @@ class TestGenerationLoop:
 class TestEvolve:
     """Test cases for evolve function."""
 
-    @pytest.mark.inference
+     
     def test_evolve_with_smiles(self,device):
         """Test evolve function with SMILES input."""
         mols, selfies_list, smiles_list = evolve(
@@ -269,7 +268,7 @@ class TestEvolve:
         assert isinstance(smiles_list, list)
         assert len(mols) > 0
 
-    @pytest.mark.inference
+     
     def test_evolve_with_empty_smiles(self,device):
         """Test evolve function with empty SMILES."""
         mols, selfies_list, smiles_list = evolve(smiles="", max_len=5, n_evolve=2,device=device)
@@ -282,7 +281,7 @@ class TestEvolve:
 class TestBridge:
     """Test cases for bridge function."""
 
-    @pytest.mark.inference
+     
     def test_bridge_with_fragments(self,device):
         """Test bridge function with two fragments."""
         frag1 = "c1ccccc1"
@@ -291,6 +290,32 @@ class TestBridge:
         assert mol is not None
         assert isinstance(smiles, str)
         assert isinstance(selfies, str)
+
+class TestDecorate:
+    """Test cases for bridge function."""
+
+     
+    def test_decorate_general(self,device):
+        """Test bridge function with two fragments."""
+        smiles = "c1cccnc1"
+        mol, smiles, selfies = decorate(smiles=smiles, atom_idx=2)
+        assert mol is not None
+        assert isinstance(smiles, str)
+        assert isinstance(selfies, str)
+
+     
+    def test_decorate_with_contextual_prompting(self,device):
+        """Test bridge function with two fragments."""
+        smiles = "BrCCCF"
+        mol, smiles, selfies = decorate(smiles=smiles, atom_idx=2)
+        assert mol is not None
+        assert isinstance(smiles, str)
+        assert isinstance(selfies, str)
+
+    def test_decorate_max_valence(self):
+        with pytest.raises(ValueError):
+            smiles = "c1cccnc1"
+            mol, smiles, selfies = decorate(smiles=smiles, atom_idx=4)
 
 class TestGetDefaultData:
 

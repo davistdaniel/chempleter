@@ -49,14 +49,16 @@ Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 
 ## Quick start
 
+These commands are valid for running Chempleter on CPU. For GPU, see [installation instructions](https://davistdaniel.github.io/chempleter/installation.html).
+
 - ### Run the GUI directly without installing (via uv):
 
     * On windows:
 
-        ``uvx --from chempleter chempleter-gui.exe``
+        ``uvx --from "chempleter[cpu]" chempleter-gui.exe``
     * On linux/MacOS:
         
-        ``uvx --from chempleter chempleter-gui``
+        ``uvx --from "chempleter[cpu]" chempleter-gui``
 
     * The very first start of the GUI on your device might be a bit slow. To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
@@ -66,7 +68,7 @@ Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 
 - ### Install using uv
 
-    ``uv pip install chempleter``
+    ``uv pip install "chempleter[cpu]"``
 
 - ### Run GUI after installation
 
@@ -76,7 +78,7 @@ Visit [Chempleter's docs](https://davistdaniel.github.io/chempleter/).
 
     * Type in the SMILES notation for the starting structure or leave it empty to generate random molecules. Click on ``GENERATE`` button to generate a molecule.
 
-    * To know more about using the GUI and various options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
+    * To know more about using the GUI and various other options, see [here](https://davistdaniel.github.io/chempleter/usage.html#use-the-gui).
 
     
  - ### Use as a python library
