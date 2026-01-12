@@ -16,13 +16,31 @@ Setting up chempleter on your device
 
         .. tab-set::
 
-            .. tab-item:: On MacOS/Linux
+            .. tab-item:: CPU
 
-                ``uvx --from chempleter chempleter-gui``
+                .. tab-set::
 
-            .. tab-item:: On windows
+                    .. tab-item:: MacOS/Linux
 
-                ``uvx --from chempleter chempleter-gui.exe``
+                        ``uvx --from "chempleter[cpu]" chempleter-gui``
+
+                    .. tab-item:: Windows
+
+                        ``uvx --from "chempleter[cpu]" chempleter-gui.exe``
+
+            .. tab-item:: GPU, CUDA 12.8
+
+                .. tab-set::
+
+                    .. tab-item:: MacOS/Linux
+
+                        ``uvx --from "chempleter[gpu128]" chempleter-gui``
+
+                    .. tab-item:: Windows
+
+                        ``uvx --from "chempleter[gpu128]" chempleter-gui.exe``
+
+
 
 .. _generating-molecules-label:
 
