@@ -70,10 +70,11 @@ On windows</label><div class="sd-tab-content docutils">
 </section>
 <section id="generating-molecules">
 <span id="generating-molecules-label"></span><h2>Generating molecules<a class="headerlink" href="#generating-molecules" title="Link to this heading">¶</a></h2>
-<ul>
+<ul class="simple">
 <li><p>Chempleter accepts a valid SMILES notation for a molecule/molecular fragment. If an initial input is not provided, chempleter generates a random molecule.</p></li>
-<li><p>There are two main inference functions:</p>
-<blockquote>
+<li><p>There are four main inference functions:</p></li>
+</ul>
+<blockquote id="extend-heading">
 <div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">extend</span></code>:</p>
 <blockquote>
@@ -85,6 +86,10 @@ append new atoms and functional groups until a complete molecule larger than the
 <img alt="_images/extend_example.png" class="align-center" src="_images/extend_example.png" />
 </div></blockquote>
 </li>
+</ul>
+</div></blockquote>
+<blockquote id="evolve-heading">
+<div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">evolve</span></code>:</p>
 <blockquote>
 <div><p>Description: A wrapper function that calls extend multiple times in a chain.
@@ -97,6 +102,10 @@ It is best to start with a small fragment.</p>
 <img alt="_images/evolve_example.png" class="align-center" src="_images/evolve_example.png" />
 </div></blockquote>
 </li>
+</ul>
+</div></blockquote>
+<blockquote id="bridge-heading">
+<div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">bridge</span></code>:</p>
 <blockquote>
 <div><p>Description: Takes two starting molecular fragments (in SMILES notation) and uses the GRU model to predict a bridge between them.</p>
@@ -107,8 +116,21 @@ It is best to start with a small fragment.</p>
 </li>
 </ul>
 </div></blockquote>
+<blockquote id="decorate-heading">
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">decorate</span></code>:</p>
+<blockquote>
+<div><p>Description: Takes a complete molecule (SMILES) and adds a substituent at a chosen atom index. The method uses the trained model to grow fragments from the selected atom, effectively “decorating” the scaffold.</p>
+<p>Behaviour: Validates the molecule and attachment atom, reorders atoms so that the target atom is treated as the growth point,
+and attempts generative extension. If direct decoration fails or results in no change, it progressively switches to contextual
+prompting based on the local atomic environment. In the final fallback case, only the attachment atom itself may be used as the prompt,
+meaning the model no longer conditions on the full molecular context. It then attaches a generated fragment to the specified atom.</p>
+<p>An example using <code class="docutils literal notranslate"><span class="pre">Decorate</span></code> on pyridine (c1ccncc1) to introduce unconventional substituents:</p>
+<img alt="_images/decorate_example.png" class="align-center" src="_images/decorate_example.png" />
+</div></blockquote>
 </li>
 </ul>
+</div></blockquote>
 <section id="use-the-gui">
 <h3>Use the GUI<a class="headerlink" href="#use-the-gui" title="Link to this heading">¶</a></h3>
 <ul>
@@ -156,6 +178,17 @@ It is best to start with a small fragment.</p>
     <span class="n">frag1_smiles</span><span class="o">=</span><span class="s2">&quot;c1ccccc1&quot;</span><span class="p">,</span><span class="n">frag2_smiles</span><span class="o">=</span><span class="s2">&quot;c1ccncc1&quot;</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">generated_smiles</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>To decorate a molecule once at a specified atom index, use <code class="docutils literal notranslate"><span class="pre">chempleter.inference.decorate</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">chempleter.inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">decorate</span>
+
+<span class="n">generated_mol</span><span class="p">,</span> <span class="n">generated_smiles</span><span class="p">,</span> <span class="n">generated_selfies</span> <span class="o">=</span> <span class="n">decorate</span><span class="p">(</span>
+    <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;c1cccnc1&quot;</span><span class="p">,</span> <span class="n">atom_idx</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="p">)</span>
+
+ <span class="nb">print</span><span class="p">(</span><span class="n">generated_smiles</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>

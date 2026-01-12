@@ -123,6 +123,115 @@
 <h2>Descriptor Distributions<a class="headerlink" href="#descriptor-distributions" title="Link to this heading">¶</a></h2>
 <img alt="Descriptor Distributions" class="align-center" src="../_images/bridge_v1.png" />
 </section>
+<section id="development-notes">
+<h2>Development Notes<a class="headerlink" href="#development-notes" title="Link to this heading">¶</a></h2>
+<p>The model was trained on SELFIES sequences derived from SMILES strings, with data sourced from the QM9 and ZINC datasets.
+In contrast to the earlier setup in extend models, two additional control tokens—[MASK] and [BRIDGE] were introduced to explicitly model fragment bridging.
+As before in extend models, SMILES randomization was applied at data loading time using non-canonical RDKit SMILES to increase sequence diversity.
+Training was stopped once the loss reached a clear plateau, even after lowering the learning rate to 1e-5.</p>
+<section id="bridging">
+<h3>Bridging<a class="headerlink" href="#bridging" title="Link to this heading">¶</a></h3>
+<p>Unlike the extend models, which learned to extend SMILES directly, this approach reformulates the task as a bridge completion problem.
+During dataset construction, sufficiently long SELFIES sequences are split into three parts:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>an initial fragment (frag1),</p></li>
+<li><p>a contiguous segment treated as the bridge,</p></li>
+<li><p>and an end fragment (frag2).</p></li>
+</ul>
+</div></blockquote>
+<p>and the model is trained to predict the bridge tokens after [BRIDGE], followed by [END]. At inference time, two fragments are joined together as <code class="docutils literal notranslate"><span class="pre">frag1</span> <span class="pre">+</span> <span class="pre">[MASK]</span> <span class="pre">+</span> <span class="pre">frag2</span> <span class="pre">+</span> <span class="pre">[BRIDGE]</span></code> to form the prompt.</p>
+</section>
+<section id="loss-masking">
+<h3>Loss Masking<a class="headerlink" href="#loss-masking" title="Link to this heading">¶</a></h3>
+<p>The training loss is computed only on the predicted bridge tokens.
+All target positions corresponding to [START], frag1, [MASK], frag2, and [BRIDGE] are ignored by the cross-entropy loss (set to zero as this alos the padding index).</p>
+</section>
+<section id="fragmentation-constraints">
+<h3>Fragmentation constraints<a class="headerlink" href="#fragmentation-constraints" title="Link to this heading">¶</a></h3>
+<p>Fragmentation is attempted only for molecules with sufficient length. For SELFIES sequences longer than 10 symbols:</p>
+<ul class="simple">
+<li><p>frag1 length is sampled randomly,</p></li>
+<li><p>bridge length is sampled between 1 and 10 tokens,</p></li>
+<li><p>frag2 contains the remainder.</p></li>
+</ul>
+<p>Shorter sequences are left unfragmented and passed through unchanged, so in principle, this model can also extend by leaving frag2 empty.</p>
+<p>PyTorch dataset was defined as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ChempleterRandomisedBridgeDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">   </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   PyTorch Dataset for SELFIES molecular representations.</span>
+
+<span class="sd">   :param smiles_file: Path to CSV file containing SMILES strings in a &quot;smiles&quot; column.</span>
+<span class="sd">   :type smiles_file: str</span>
+<span class="sd">   :param stoi_file: Path to JSON file mapping SELFIES symbols to integer tokens.</span>
+<span class="sd">   :type stoi_file: str</span>
+<span class="sd">   :returns: Integer tensor representation of tokenized molecule with dtype=torch.long.</span>
+<span class="sd">   :rtype: torch.Tensor</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_file</span><span class="p">,</span> <span class="n">stoi_file</span><span class="p">):</span>
+      <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+      <span class="n">smiles_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">smiles_file</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">smiles_dataframe</span><span class="p">[</span><span class="s2">&quot;smiles&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">stoi_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selfies_to_integer</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+      <span class="n">molecule_in_smiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+      <span class="c1"># try randomisation</span>
+      <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">molecule_in_smiles</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">molecule</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">molecule_in_selfies</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span>
+                  <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">canonical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">doRandom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+               <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+               <span class="n">molecule_in_selfies</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">molecule_in_smiles</span><span class="p">)</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELFIES encoding error for randomised SMILES: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+            <span class="n">molecule_in_selfies</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">molecule_in_smiles</span><span class="p">)</span>
+
+      <span class="n">symbols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sf</span><span class="o">.</span><span class="n">split_selfies</span><span class="p">(</span><span class="n">molecule_in_selfies</span><span class="p">))</span>
+
+      <span class="c1"># try fragmentation</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">len_frag1</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">len_bridge</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
+               <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span>
+            <span class="p">)</span>  <span class="c1"># bridge len ranges from 1 to 10.# this would be constraint later</span>
+            <span class="n">len_frag2</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">len_frag1</span> <span class="o">+</span> <span class="n">len_bridge</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">frag1</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[:</span><span class="n">len_frag1</span><span class="p">]</span>
+            <span class="n">bridge</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[</span><span class="n">len_frag1</span><span class="p">:</span><span class="n">len_frag2</span><span class="p">]</span>
+            <span class="n">frag2</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">[</span><span class="n">len_frag2</span><span class="p">:]</span>
+
+      <span class="k">else</span><span class="p">:</span>
+            <span class="n">frag1</span> <span class="o">=</span> <span class="n">symbols</span>
+            <span class="n">bridge</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">frag2</span> <span class="o">=</span> <span class="p">[]</span>
+
+      <span class="n">symbols_molecule</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;[START]&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">frag1</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;[MASK]&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">frag2</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;[BRIDGE]&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">bridge</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;[END]&quot;</span><span class="p">]</span>
+      <span class="p">)</span>
+      <span class="n">integer_molecule</span> <span class="o">=</span> <span class="p">[]</span>
+
+      <span class="c1"># check if all symbols exist in stoi</span>
+      <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols_molecule</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selfies_to_integer</span><span class="p">:</span>
+               <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                  <span class="sa">f</span><span class="s2">&quot;Molecule symbol not found in stoi. Add </span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> in stoi with correct integer mapping.&quot;</span>
+               <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="n">integer_molecule</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selfies_to_integer</span><span class="p">[</span><span class="n">symbol</span><span class="p">])</span>
+
+      <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">integer_molecule</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
 

@@ -49,60 +49,107 @@
 </ul>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key1" for="sd-tab-item-0">
+<label class="sd-tab-label" for="sd-tab-item-0">
+CPU</label><div class="sd-tab-content docutils">
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key1" for="sd-tab-item-2">
 Using uv</label><div class="sd-tab-content docutils">
-<p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">chempleter</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;chempleter[cpu]&quot;</span>
+</pre></div>
 </div>
-<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key2" for="sd-tab-item-1">
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key2" for="sd-tab-item-3">
 Using pip</label><div class="sd-tab-content docutils">
-<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">chempleter</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;chempleter[cpu]&quot;</span>
+</pre></div>
 </div>
-<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-2">
+</div>
+<input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
 Install for development</label><div class="sd-tab-content docutils">
 <ul>
-<li><p>Clone the chempleter repo:</p>
+<li><p>Clone the repo:</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/davistdaniel/chempleter.git</span></code></p>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/davistdaniel/chempleter.git
+</pre></div>
+</div>
 </div></blockquote>
 </li>
-<li><p>Inside the project directory, execute in a terminal:</p>
+<li><p>Inside the project directory:</p>
 <blockquote>
-<div><ul>
-<li><p>For CPU:</p>
-<blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code></p>
-</div></blockquote>
-</li>
-<li><p>For GPU, CUDA 12.8:</p>
-<blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span> <span class="pre">--extra</span> <span class="pre">gpu128</span></code></p>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </span>--extra<span class="w"> </span>cpu<span class="w"> </span>--extra<span class="w"> </span>validation
+</pre></div>
+</div>
 </div></blockquote>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+GPU and CUDA 12.8</label><div class="sd-tab-content docutils">
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key1" for="sd-tab-item-5">
+Using uv</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;chempleter[gpu128]&quot;</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-6" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key2" for="sd-tab-item-6">
+Using pip</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;chempleter[gpu128]&quot;</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-7" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-7">
+Install for development</label><div class="sd-tab-content docutils">
+<ul>
+<li><p>Clone the repo:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/davistdaniel/chempleter.git
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Inside the project directory:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </span>--extra<span class="w"> </span>gpu128<span class="w"> </span>--extra<span class="w"> </span>validation
+</pre></div>
+</div>
 </div></blockquote>
 </li>
 </ul>
+</div>
+</div>
 </div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>By default, the CPU version of pytorch will be installed and used by Chempleter.
-Alternatively, you can install a PyTorch version compatible with your CUDA version by following the <a class="reference external" href="https://pytorch.org/get-started/locally/">Pytorch documentation</a>.
-To use the validation module of chempleter, you must install matplotlib and tqdm. In this case, you must install chempleter with:</p>
-<p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;chempleter[validation]&quot;</span></code></p>
+<p>Alternatively, you can try using Chempleter with a PyTorch version compatible with your CUDA version by following the <a class="reference external" href="https://pytorch.org/get-started/locally/">Pytorch documentation</a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To use the validation module of chempleter, you must install matplotlib and tqdm. In this case, you must install chempleter with:</p>
+<p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;chempleter[cpu,validation]&quot;</span></code></p>
+<p>or for GPU, CUDA 12.8:</p>
+<p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&quot;chempleter[gpu128,validation]&quot;</span></code></p>
 </div>
 <section id="starting-chempleter-s-gui">
 <h3>Starting Chempleter’s GUI<a class="headerlink" href="#starting-chempleter-s-gui" title="Link to this heading">¶</a></h3>
 <div class="sd-tab-set docutils">
-<input checked="checked" id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key1" for="sd-tab-item-3">
+<input checked="checked" id="sd-tab-item-8" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key1" for="sd-tab-item-8">
 Installed using uv</label><div class="sd-tab-content docutils">
 <p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span> <span class="pre">chempleter-gui</span></code></p>
 </div>
-<input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
-<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key2" for="sd-tab-item-4">
+<input id="sd-tab-item-9" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" data-sync-group="installation" data-sync-id="key2" for="sd-tab-item-9">
 Installed using pip</label><div class="sd-tab-content docutils">
 <p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">chempleter.gui</span></code></p>
 </div>

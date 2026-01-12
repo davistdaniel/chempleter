@@ -41,3 +41,45 @@ Descriptor Distributions
 .. image:: extend_v1.png
    :alt: Descriptor Distributions
    :align: center
+
+
+Development Notes
+------------------------
+
+Model was trained on SMILES patterns encoded into SELFIES. Training data was obtained from QM9 and ZINC datasets.
+Training was stopped when a plateau in loss was observed even with a reduced learning rate of 1e-5.
+
+PyTorch dataset was defined as follows:
+
+.. code::
+
+   class ChempleterDataset(Dataset):
+      """
+      PyTorch Dataset for SELFIES molecular representations.
+
+      :param selfies_file: Path to CSV file containing SELFIES strings in a "selfies" column.
+      :type selfies_file: str
+      :param stoi_file: Path to JSON file mapping SELFIES symbols to integer tokens.
+      :type stoi_file: str
+      :returns: Integer tensor representation of tokenized molecule with dtype=torch.long.
+      :rtype: torch.Tensor
+      """
+
+      def __init__(self, selfies_file, stoi_file):
+         super().__init__()
+         selfies_dataframe = pd.read_csv(selfies_file)
+         self.data = selfies_dataframe["selfies"].to_list()
+         with open(stoi_file) as f:
+               self.selfies_to_integer = json.load(f)
+
+      def __len__(self):
+         return len(self.data)
+
+      def __getitem__(self, index):
+         molecule = self.data[index]
+         symbols_molecule = ["[START]"] + list(sf.split_selfies(molecule)) + ["[END]"]
+         integer_molecule = [
+               self.selfies_to_integer[symbol] for symbol in symbols_molecule
+         ]
+         return torch.tensor(integer_molecule, dtype=torch.long)
+   

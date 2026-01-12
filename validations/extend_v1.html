@@ -124,6 +124,43 @@
 <h2>Descriptor Distributions<a class="headerlink" href="#descriptor-distributions" title="Link to this heading">¶</a></h2>
 <img alt="Descriptor Distributions" class="align-center" src="../_images/extend_v1.png" />
 </section>
+<section id="development-notes">
+<h2>Development Notes<a class="headerlink" href="#development-notes" title="Link to this heading">¶</a></h2>
+<p>Model was trained on SMILES patterns encoded into SELFIES. Training data was obtained from QM9 and ZINC datasets.
+Training was stopped when a plateau in loss was observed even with a reduced learning rate of 1e-5.</p>
+<p>PyTorch dataset was defined as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ChempleterDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">   </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   PyTorch Dataset for SELFIES molecular representations.</span>
+
+<span class="sd">   :param selfies_file: Path to CSV file containing SELFIES strings in a &quot;selfies&quot; column.</span>
+<span class="sd">   :type selfies_file: str</span>
+<span class="sd">   :param stoi_file: Path to JSON file mapping SELFIES symbols to integer tokens.</span>
+<span class="sd">   :type stoi_file: str</span>
+<span class="sd">   :returns: Integer tensor representation of tokenized molecule with dtype=torch.long.</span>
+<span class="sd">   :rtype: torch.Tensor</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selfies_file</span><span class="p">,</span> <span class="n">stoi_file</span><span class="p">):</span>
+      <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+      <span class="n">selfies_dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">selfies_file</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">selfies_dataframe</span><span class="p">[</span><span class="s2">&quot;selfies&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">stoi_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selfies_to_integer</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+      <span class="n">molecule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+      <span class="n">symbols_molecule</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;[START]&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">sf</span><span class="o">.</span><span class="n">split_selfies</span><span class="p">(</span><span class="n">molecule</span><span class="p">))</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;[END]&quot;</span><span class="p">]</span>
+      <span class="n">integer_molecule</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selfies_to_integer</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols_molecule</span>
+      <span class="p">]</span>
+      <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">integer_molecule</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 

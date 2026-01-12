@@ -1,6 +1,12 @@
 Model history
 =========================
 
+All models were trained on a system equipped with:
+
+* NVIDIA 4060Ti (16GB) GPU
+* CUDA 12.8
+
+The links below also contains some development notes about model development process along with the validation metrics.
 
 .. toctree::
    :maxdepth: 1
@@ -10,7 +16,6 @@ Model history
    validations/extend_v2
    validations/bridge_v1
 
-Read more about the validation methodology below.
 
 Validation methodology
 ------------------------------------
@@ -41,7 +46,7 @@ The following metrics assess the quality of the generated molecules:
 Descriptor statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following descriptors (as implemented in `RDKit <https://www.rdkit.org/docs/source/rdkit.Chem.Descriptors.html>`_) and their distirbutions  summarize the physicochemical and structural properties of the generated molecules:
+The following descriptors (as implemented in `RDKit <https://www.rdkit.org/docs/source/rdkit.Chem.Descriptors.html>`_) and their distributions summarize the physicochemical and structural properties of the generated molecules:
 
 .. list-table:: Descriptor Statistics
     :header-rows: 1

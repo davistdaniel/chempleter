@@ -41,6 +41,12 @@
             
   <section id="model-history">
 <h1>Model history<a class="headerlink" href="#model-history" title="Link to this heading">¶</a></h1>
+<p>All models were trained on a system equipped with:</p>
+<ul class="simple">
+<li><p>NVIDIA 4060Ti (16GB) GPU</p></li>
+<li><p>CUDA 12.8</p></li>
+</ul>
+<p>The links below also contains some development notes about model development process along with the validation metrics.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Model validation reports:</span></p>
 <ul>
@@ -49,7 +55,6 @@
 <li class="toctree-l1"><a class="reference internal" href="validations/bridge_v1.html">Validation report: bridge_v1</a></li>
 </ul>
 </div>
-<p>Read more about the validation methodology below.</p>
 <section id="validation-methodology">
 <h2>Validation methodology<a class="headerlink" href="#validation-methodology" title="Link to this heading">¶</a></h2>
 <p>For each model validation, depending on the type of model, <code class="docutils literal notranslate"><span class="pre">chempleter.inference.extend</span></code> or <code class="docutils literal notranslate"><span class="pre">chempleter.inference.bridge</span></code> are used.
@@ -79,7 +84,7 @@ Metrics and descriptors are calculated for <code class="docutils literal notrans
 </section>
 <section id="descriptor-statistics">
 <h3>Descriptor statistics<a class="headerlink" href="#descriptor-statistics" title="Link to this heading">¶</a></h3>
-<p>The following descriptors (as implemented in <a class="reference external" href="https://www.rdkit.org/docs/source/rdkit.Chem.Descriptors.html">RDKit</a>) and their distirbutions  summarize the physicochemical and structural properties of the generated molecules:</p>
+<p>The following descriptors (as implemented in <a class="reference external" href="https://www.rdkit.org/docs/source/rdkit.Chem.Descriptors.html">RDKit</a>) and their distributions summarize the physicochemical and structural properties of the generated molecules:</p>
 <table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Descriptor Statistics</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
 <thead>
