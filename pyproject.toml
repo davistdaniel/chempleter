@@ -1,6 +1,6 @@
 [project]
 name = "chempleter"
-version = "0.1.0b7"
+version = "0.1.0b8"
 description = "A lightweight generative model that extends SMILES fragments into syntactically valid molecules"
 readme = "README.md"
 authors = [

@@ -9,7 +9,7 @@
 project = 'Chempleter'
 copyright = '2026, Davis Thomas Daniel'
 author = 'Davis Thomas Daniel'
-release = '0.1.0b7'
+release = '0.1.0b8'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
