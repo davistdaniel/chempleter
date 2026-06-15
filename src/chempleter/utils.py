@@ -1,6 +1,7 @@
 from chempleter.inference import handle_prompt
 from rdkit import Chem
 from rdkit.Chem import Draw
+from rdkit.Chem import rdFMCS
 
 def _validate_smiles(smiles, alter_prompt_checkbox_value, frag1_smiles=None, frag2_smiles=None,):
     try:
@@ -100,7 +101,7 @@ def _draw_if_evolve(generated_molecule):
 
         prev = m_gen_list[i - 1]
 
-        mcs = Chem.rdFMCS.FindMCS(
+        mcs = rdFMCS.FindMCS(
             [prev, mol], ringMatchesRingOnly=True, completeRingsOnly=True
         )
 
