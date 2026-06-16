@@ -32,8 +32,10 @@ Chempleter is a lightweight generative sequence model based on a multi-layer gat
     * In the future, it might be adapated to predict structures with a specific chemical property using a regressor to rank predictions and transition towards more "goal-directed" predictions.
 
 
-See [chempleter in action.](https://davistdaniel.github.io/chempleter/demo.html)
+See [chempleter in action.](https://davistdaniel.github.io/chempleter/demo.html) or try chempleter on Huggingface: [chempleter-gui](https://huggingface.co/spaces/davistdaniel/chempleter-gui).
 
+## Demo
+Try it our on Huggingface: [chempleter-gui](https://huggingface.co/spaces/davistdaniel/chempleter-gui).
 
 ## Prerequisites
 * Python ">=3.12"
