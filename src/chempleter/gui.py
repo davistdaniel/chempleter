@@ -2,6 +2,8 @@ import io
 import base64
 import logging
 import torch
+import argparse
+import sys
 from nicegui import ui
 from pathlib import Path
 from importlib import resources
@@ -10,6 +12,7 @@ from chempleter import __version__
 from chempleter.inference import extend, evolve, bridge, decorate
 from chempleter.utils import _validate_smiles, _draw_if_bridge, _draw_if_evolve, _draw_if_extend, _draw_input_if_decorate
 from chempleter.descriptors import calculate_descriptors
+
 
 logger = logging.getLogger(__name__)
 
@@ -290,7 +293,7 @@ def build_chempleter_ui():
 
         #logo
         with ui.row(wrap=False).classes("w-128 justify-center"):
-            with ui.link(target="https://github.com/davistdaniel/chempleter"):
+            with ui.link(target="https://github.com/davistdaniel/chempleter",new_tab=True):
                 ui.image(logo_path).classes("w-32")
         
         # help label
@@ -390,7 +393,7 @@ def build_chempleter_ui():
         )
     ):
         ui.label(f"Chempleter v.{__version__}.")
-        ui.link("View on GitHub", "https://github.com/davistdaniel/chempleter").style(
+        ui.link("View on GitHub", "https://github.com/davistdaniel/chempleter",new_tab=True).style(
             "font-weight: normal; color: grey; font-size: 15px; "
         )
 
@@ -399,8 +402,12 @@ def run_chempleter_gui():
     """
     This function runs the ui.run and acts as the entry point for the script chempleter-gui
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=7860)
+    args = parser.parse_args(sys.argv[1:])
+    port = args.port
     favicon_path = Path(resources.files("chempleter.data").joinpath("chempleter.ico"))
-    ui.run(favicon=favicon_path, reload=False, root=build_chempleter_ui)
+    ui.run(favicon=favicon_path, port=port, reload=False, root=build_chempleter_ui)
 
 
 if __name__ in {"__main__", "__mp_main__"}:
