@@ -35,7 +35,7 @@ Chempleter is a lightweight generative sequence model based on a multi-layer gat
 See [chempleter in action.](https://davistdaniel.github.io/chempleter/demo.html) or try chempleter on Huggingface: [chempleter-gui](https://huggingface.co/spaces/davistdaniel/chempleter-gui).
 
 ## Demo
-Try it our on Huggingface: [chempleter-gui](https://huggingface.co/spaces/davistdaniel/chempleter-gui).
+Try it out on Huggingface: [chempleter-gui](https://huggingface.co/spaces/davistdaniel/chempleter-gui).
 
 ## Prerequisites
 * Python ">=3.12"
